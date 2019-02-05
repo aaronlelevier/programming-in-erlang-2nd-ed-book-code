@@ -1,0 +1,15 @@
+# https://raw.githubusercontent.com/github/gitignore/master/Erlang.gitignore
+.eunit
+deps
+*.o
+*.beam
+*.plt
+erl_crash.dump
+ebin/*.beam
+rel/example_project
+.concrete/DEV_MODE
+.rebar
+
+# intellij
+.idea/
+ProgrammingInErlang.iml

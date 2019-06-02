@@ -13,7 +13,10 @@ loop(Dir) ->
     {Client, {get_file, File}} ->
       io:format("get_file cmd received~n"),
       Full = filename:join(Dir, File),
-      Client ! {self(), file:read_file(Full)}
-    end,
+      Client ! {self(), file:read_file(Full)};
+    {Client, {put_file, File, Content}} ->
+      file:write_file(File, io_lib:fwrite("~p.\n", [Content])),
+      Client ! {self(), File}
+  end,
   loop(Dir).
 

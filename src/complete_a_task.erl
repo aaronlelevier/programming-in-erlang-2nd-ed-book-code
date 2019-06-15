@@ -26,21 +26,29 @@
   my_expected_finish_date/1,
   days_to_complete/1,
   will_finish_early/1,
-  difference_in_days/2
+  difference_in_days/2,
+  today/0,
+  number_of_weeks/1,
+  final_days_to_complete/1,
+  %% testing
+  test/0
 ]).
 
 %%% config
 %% expected number of total days to compete
 expected_days_to_complete() -> 90.
-
 %% total amount to do
 total() -> 510.
-
 %% amount to do per day
 amount_per_day() -> 5.
-
-%% add a number of days off to buffer the goal
+%% add a number of days off to buffer the goal, could
+%% stand for vacation days, etc...
 buffer_days() -> 17.
+%% days off from goal per week
+days_off_per_week() -> 1.
+
+%% Tests
+test() -> true.
 
 
 %%% Functions
@@ -54,7 +62,25 @@ days_to_complete(Current) ->
   AmountPerDay = amount_per_day(),
   TotalDays = Total - Current,
   RawTotalDays = TotalDays div AmountPerDay,
-  RawTotalDays + buffer_days().
+  RawTotalDays.
+
+
+%% Calculates the total days off if taking N number of
+%% days offer per week
+%% @param Current (int)
+total_days_off_per_week(Current) ->
+  number_of_weeks(Current) * days_off_per_week().
+
+
+%% Total days off combining weekly days and buffer days
+%% @param Current (int)
+total_days_off(Current) ->
+  total_days_off_per_week(Current) + buffer_days().
+
+
+%% @param Current (int)
+final_days_to_complete(Current) ->
+  days_to_complete(Current) + total_days_off(Current).
 
 
 %% Returns the expected finish date based on the config
@@ -66,6 +92,19 @@ my_expected_finish_date(Current) ->
   calendar:gregorian_days_to_date(
     calendar:date_to_gregorian_days(Today) + DaysToComplete).
 
+%% Returns today's date
+%% @return (tuple) {Year, Month, Day}
+today() ->
+  {Today, _} = calendar:universal_time(),
+  Today.
+
+
+%% Returns the integer number of weeks to achieve the goal
+%% @param Current (int)
+number_of_weeks(Current) ->
+  ExpectedDate = my_expected_finish_date(Current),
+  difference_in_days(today(), ExpectedDate) div 7.
+
 
 %% Returns a boolean value if we will finish early
 %% @param Current (int)
@@ -74,10 +113,8 @@ will_finish_early(Current) ->
   DaysToComplete = days_to_complete(Current),
   ExpectedDays = expected_days_to_complete(),
   DaysDiff = DaysToComplete - ExpectedDays,
-
   Answer = days_to_complete(Current) <
     expected_days_to_complete(),
-
   {Answer, {days_diff, DaysDiff}}.
 
 

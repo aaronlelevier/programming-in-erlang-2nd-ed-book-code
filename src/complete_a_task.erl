@@ -23,69 +23,70 @@
 
 %% API
 -export([
-  %% main entrypoint using config
-  main/0,
-  raw_expected_finish_date/2,
-  raw_days_to_complete/1,
-  raw_will_finish_early/2,
+  %% prod
+
+  completion_date/2,
+  add_days/2,
+  total_weeks_to_complete/1,
+  total_days_to_complete/1,
+  work_days_to_complete/1,
+  days_off/1,
+  number_of_weeks/2,
   number_of_days/2,
   today/0,
-  number_of_weeks/2,
-  days_to_complete/2,
+
   %% testing
   test/0
 ]).
 
 %%% config
-%% current completed
-current() -> 63.
-%% expected number of total days to compete
-expected_days_to_complete() -> 90.
-%% total amount to do
 total() -> 510.
-%% amount to do per day
 amount_per_day() -> 5.
-%% add a number of days off to buffer the goal, could
-%% stand for vacation days, etc...
 buffer_days() -> 17.
-%% days off from goal per week
 days_off_per_week() -> 1.
 
 %% Tests
 test() ->
-  test_raw_expected_number_of_weeks(),
-  test_raw_expected_finish_date(),
-  test_raw_days_to_complete(),
-  test_number_of_weeks_under_one(),
-  test_number_of_weeks_over_one(),
+  test_completion_date(),
+  test_add_days(),
+  test_total_weeks_to_complete(),
+  test_total_days_to_complete(),
+  test_days_off(),
+  test_work_days_to_complete(),
+  test_number_of_weeks(),
   test_number_of_days(),
   {ok}.
 
 
-test_raw_expected_number_of_weeks() ->
+test_completion_date() ->
   Date = {2019, 6, 15},
   Current = 63,
-  12 = raw_expected_number_of_weeks(Date, Current).
+  {2019, 10, 11} = completion_date(Date, Current).
 
 
-test_raw_expected_finish_date() ->
+test_add_days() ->
   Date = {2019, 6, 15},
-  Current = 63,
-  {2019, 9, 12} = raw_expected_finish_date(Date, Current).
+  Days = 4,
+  {2019, 6, 19} = add_days(Date, Days).
 
 
-test_raw_days_to_complete() ->
-  Current = 63,
-  89 = raw_days_to_complete(Current).
+test_total_weeks_to_complete() ->
+  16 = total_weeks_to_complete(63).
 
 
-test_number_of_weeks_under_one() ->
-  Date1 = {2019, 6, 15},
-  Date2 = {2019, 6, 19},
-  0 = number_of_weeks(Date1, Date2).
+test_total_days_to_complete() ->
+ 118 = total_days_to_complete(63).
 
 
-test_number_of_weeks_over_one() ->
+test_days_off() ->
+  14 = days_off(10).
+
+
+test_work_days_to_complete() ->
+  89 = work_days_to_complete(63).
+
+
+test_number_of_weeks() ->
   Date1 = {2019, 6, 15},
   Date2 = {2019, 6, 23},
   1 = number_of_weeks(Date1, Date2).
@@ -99,89 +100,38 @@ test_number_of_days() ->
 
 %%% Functions
 
-main() ->
-  Today = today(),
-  Current = current(),
-  DaysToComplete = days_to_complete(Today, Current),
-  {
-    {days, DaysToComplete},
-    {weeks, DaysToComplete div 7},
-    {completion_date, raw_expected_finish_date(Today, Current)}
-  }.
+completion_date(Date, Current) ->
+  Days = total_days_to_complete(Current),
+  add_days(Date, Days).
 
 
-%% @param Current (int)
-days_to_complete(Today, Current) ->
-  raw_days_to_complete(Current) + total_days_off(Today, Current).
-
-
-
-
-%% Calculates the total days off if taking N number of
-%% days offer per week
-%% @param Current (int)
-total_days_off_per_week(Today, Current) ->
-  raw_expected_number_of_weeks(Today, Current) * days_off_per_week().
-
-
-%% Total days off combining weekly days and buffer days
-%% @param Current (int)
-total_days_off(Today, Current) ->
-  total_days_off_per_week(Today, Current) + buffer_days().
-
-
-%% Returns a boolean value if we will finish early
-%% @param Current (int)
-%% @return bool
-raw_will_finish_early(Date, Current) ->
-  DaysToComplete = raw_days_to_complete(Current),
-  ExpectedDate = raw_expected_finish_date(Date, Current),
-  ExpectedDays =
-  DaysDiff = DaysToComplete - ExpectedDays,
-  Answer = DaysToComplete < ExpectedDays,
-  {Answer, {days_diff, DaysDiff}}.
-
-
-%% Returns the integer number of weeks to achieve the goal
-%% based on the date and Current achieved
-%% @param Current (int)
-raw_expected_number_of_weeks(Date, Current) ->
-  ExpectedDate = raw_expected_finish_date(Date, Current),
-  number_of_weeks(Date, ExpectedDate).
-
-
-%% Returns the expected finish date based on the config
-%% @param Current (int)
-%% @return (tuple) {Year, Month, Day}
-raw_expected_finish_date(Date, Current) ->
-  DaysToComplete = raw_days_to_complete(Current),
+add_days(Date, Days) ->
   calendar:gregorian_days_to_date(
-    calendar:date_to_gregorian_days(Date) + DaysToComplete).
+    calendar:date_to_gregorian_days(Date) + Days).
 
 
-%% Returns the integer number of days until complete based
-%% on the config
-%% @param Current (int)
-%% @return int
-raw_days_to_complete(Current) ->
-  Total = total(),
-  TotalDays = Total - Current,
-  TotalDays div amount_per_day().
+total_weeks_to_complete(Current) ->
+  total_days_to_complete(Current) div 7.
+
+
+total_days_to_complete(Current) ->
+  work_days_to_complete(Current) + buffer_days() + days_off(Current).
+
+
+days_off(Current) ->
+  (work_days_to_complete(Current) div 7) * days_off_per_week().
+
+
+work_days_to_complete(Current) ->
+  (total() - Current) div amount_per_day().
 
 
 %% Returns the integer number of weeks to achieve the goal
-%% based on the dates
-%% @param Date1 (tuple) {Year, Month, Day}
-%% @param Date2 (tuple) {Year, Month, Day}
-%% @param Current (int)
 number_of_weeks(Date1, Date2) ->
   number_of_days(Date1, Date2) div 7.
 
 
-%% Returns the integer date difference between dates
-%% @param Date1 (tuple) {Year, Month, Day}
-%% @param Date2 (tuple) {Year, Month, Day}
-%% @return int
+%% Returns the integer number days diff between 2 dates
 number_of_days(Date1, Date2) ->
   Datetime1 = {Date1, {0,0,0}},
   Datetime2 = {Date2, {0,0,0}},

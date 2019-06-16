@@ -1,30 +1,8 @@
-%%%-------------------------------------------------------------------
-%%% @author aaron
-%%% @copyright (C) 2019, <COMPANY>
-%%% @doc Date arithmetic functions for calculating how long
-%%% it will take to complete a task
-%%%
-%%% Example code showing the module working
-%%%
-%%% 1> c(complete_a_task).
-%%% {ok,complete_a_task}
-%%% 2> ExpectedDate = complete_a_task:my_expected_finish_date(63).
-%%% {2019,9,29}
-%%% 3> {Today, _} = calendar:universal_time().
-%%% {{2019,6,15},{20,50,14}}
-%%% 4> complete_a_task:difference_in_days(Today, ExpectedDate).
-%%% 106
-%%%
-%%% @end
-%%% Created : 15. Jun 2019 12:41
-%%%-------------------------------------------------------------------
 -module(complete_a_task).
--author("aaron").
+-author("Aaron Lelevier").
 
-%% API
 -export([
   %% prod
-
   completion_date/2,
   add_days/2,
   total_weeks_to_complete/1,
@@ -34,18 +12,20 @@
   number_of_weeks/2,
   number_of_days/2,
   today/0,
-
   %% testing
   test/0
 ]).
 
-%%% config
+
+%% Config
+
 total() -> 510.
 amount_per_day() -> 5.
 buffer_days() -> 17.
 days_off_per_week() -> 1.
 
 %% Tests
+
 test() ->
   test_completion_date(),
   test_add_days(),

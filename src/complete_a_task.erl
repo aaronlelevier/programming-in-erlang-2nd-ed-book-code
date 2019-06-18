@@ -80,6 +80,9 @@ test_number_of_days() ->
 
 %%% Functions
 
+%% Returns the expected completion date
+%% @param Date - erlang:date() - current date
+%% @param Current - int - current page number
 completion_date(Date, Current) ->
   Days = total_days_to_complete(Current),
   add_days(Date, Days).

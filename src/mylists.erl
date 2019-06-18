@@ -44,5 +44,5 @@ make_test(L) ->
 
 
 %% define your own for loop
-for(Max, Max, F) -> F(Max);
+for(Max, Max, F) -> [F(Max)];
 for(I, Max, F) -> [F(I)|for(I+1, Max, F)].

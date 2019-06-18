@@ -13,4 +13,10 @@ area({rectangle, Width, Height}) -> Width * Height;
 area({square, Side}) -> Side * Side;
 area({triangle, Side1, Side2, Side3}) ->
   P = (Side1 + Side2 + Side3) / 2,
-  math:sqrt(P*(P-Side1)*(P-Side2)*(P-Side3)).
+  math:sqrt(P*(P-Side1)*(P-Side2)*(P-Side3));
+area({circle, Radius}) ->
+  Area = math:pi() * math:pow(Radius, 2),
+  Perimeter = 2 * math:pi() * Radius,
+  {{area, Area}, {perimeter, Perimeter}};
+area({right_triangle, A, B}) ->
+  (A*B) / 2.

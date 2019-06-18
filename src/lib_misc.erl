@@ -18,4 +18,3 @@ pythag(N) ->
     A+B+C =< N,
     A*A+B*B =:= C*C
   ].
-

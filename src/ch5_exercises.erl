@@ -11,7 +11,7 @@
 
 %% API
 -export([readlines/1, is_char/1, is_lower_char/1, is_upper_char/1,
-  config_to_tuple/1, read_config/2]).
+  config_to_tuple/1, read_config/2, char_type/1]).
 
 
 readlines(FileName) ->
@@ -38,13 +38,40 @@ config_to_tuple(FileName) ->
 read_config([], Chars) ->
   list_to_atom(lists:reverse(Chars));
 read_config(Line, Chars) ->
+  %%  io:fwrite("~s ~s~n", [Line, Chars]),
   [H|T] = Line,
-  IsChar = is_char(H),
-  if IsChar =:= false ->
-      read_config(T, Chars);
-    true ->
-      read_config(T, [H|Chars])
+  CharType = char_type(H),
+  case CharType of
+    char -> read_config(T, [H|Chars]);
+    delimiter -> read_config(T, Chars);
+    number -> read_config(T, Chars)
   end.
+
+
+%% returns an atom for the type of character
+char_type(CharInt) ->
+  IsNumber = is_char_number(CharInt),
+  IsDelimiter = is_delimiter(CharInt),
+  IsChar = is_char(CharInt),
+  if IsNumber ->
+      number;
+    IsDelimiter ->
+      delimiter;
+    IsChar ->
+      char
+  end.
+
+
+is_char_number(CharInt) ->
+  Zero = 48,
+  Nine = 57,
+  (CharInt >= Zero) and (CharInt =< Nine).
+
+
+is_delimiter(CharInt) ->
+  Colon = 58,
+  Whitespace = 32,
+  (CharInt =:= Colon) or (CharInt =:= Whitespace).
 
 
 %% takes integer value of a char and returns book if a-z or A-Z
@@ -55,9 +82,14 @@ is_char(CharInt) ->
 %% takes integer value of a char and returns a bool if the char is a-z
 %% i.e. "a" int value is 97, so true
 is_lower_char(CharInt) ->
-  (CharInt >= 97) and (CharInt =< 122).
+  LowerA = 97,
+  LowerZ = 122,
+  (CharInt >= LowerA) and (CharInt =< LowerZ).
+
 
 %% takes integer value of a char and returns a bool if the char is A-Z
 %% i.e. "a" int value is 97, so true
 is_upper_char(CharInt) ->
-  (CharInt >= 65) and (CharInt =< 91).
+  UpperA = 65,
+  UpperZ = 91,
+  (CharInt >= UpperA) and (CharInt =< UpperZ).

@@ -11,7 +11,7 @@
 
 %% API
 -export([readlines/1, is_char/1, is_lower_char/1, is_upper_char/1,
-  config_to_tuple/1, read_config/2, char_type/1]).
+  config_to_tuple/1, read_config/3, char_type/1]).
 
 
 readlines(FileName) ->
@@ -27,24 +27,27 @@ get_all_lines(Device) ->
   end.
 
 
+%% reads a file with a single key/value config where the value is
+%% an int and converts it to a tuple
 config_to_tuple(FileName) ->
   {ok, Device} = file:open(FileName, [read]),
   Line = io:get_line(Device, ""),
-  read_config(Line, []).
+  read_config(Line, [], []).
 
 
-%% reads a string of "Chars" until runs into a non-char and converts
-%% the string to an atom
-read_config([], Chars) ->
-  list_to_atom(lists:reverse(Chars));
-read_config(Line, Chars) ->
-  %%  io:fwrite("~s ~s~n", [Line, Chars]),
+%% reads a tuple of the config key as an atom and the value as an int
+read_config([], Chars, Values) ->
+  {
+    list_to_atom(lists:reverse(Chars)),
+    list_to_integer(lists:reverse(Values))
+  };
+read_config(Line, Chars, Values) ->
   [H|T] = Line,
   CharType = char_type(H),
   case CharType of
-    char -> read_config(T, [H|Chars]);
-    delimiter -> read_config(T, Chars);
-    number -> read_config(T, Chars)
+    char -> read_config(T, [H|Chars], Values);
+    delimiter -> read_config(T, Chars, Values);
+    number -> read_config(T, Chars, [H|Values])
   end.
 
 

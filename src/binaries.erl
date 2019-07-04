@@ -10,7 +10,8 @@
 -author("aaron").
 
 %% API
--export([reverse/1, term_to_packet/1, packet_to_term/1]).
+-export([reverse/1, term_to_packet/1, packet_to_term/1, tests/0,
+  reverse_bitstring/1]).
 
 
 %% ch-7 ex-1 - reverse the order of bytes in a binary
@@ -30,6 +31,20 @@ term_to_packet(Term) ->
 packet_to_term(Packet) ->
   <<_:4, Bin/binary>> = Packet,
   binary_to_term(Bin).
+
+
+%% ch-7 ex-4 - write tests for the above functions
+tests() ->
+  Term = {state_of_aaron, "excited"},
+  Packet = term_to_packet(Term),
+  Term = packet_to_term(Packet),
+  ok.
+
+
+%% ch-7 ex-5 reverse bits in a binary
+reverse_bitstring(BitString) ->
+  BitList = [X || <<X:1>> <= BitString],
+  lists:reverse(BitList).
 
 
 %% 153> f().

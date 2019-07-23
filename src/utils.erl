@@ -10,7 +10,7 @@
 -author("aaron").
 
 %% API
--export([type/1, next_true/1]).
+-export([type/1, next_true/1, list_files/2]).
 
 type(X) ->
   M = #{
@@ -39,8 +39,17 @@ type(X) ->
 
 next_true([]) ->
   false;
-next_true([H|T]) ->
+next_true([H | T]) ->
   case H of
     {Key, true} -> Key;
     {_, false} -> next_true(T)
   end.
+
+%% lists all files in a given Dir where the name contains the SearchString
+list_files(Dir, SearchString) ->
+  lists:filter(
+    fun(Name) -> string:find(Name, SearchString) =/= nomatch end,
+    begin
+      {ok, Files} = file:list_dir(Dir),
+      Files
+    end).

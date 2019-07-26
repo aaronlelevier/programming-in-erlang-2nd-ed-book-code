@@ -8,11 +8,14 @@
 %%%-------------------------------------------------------------------
 -module(utils).
 -author("aaron").
+-chapter(["8"]).
 
 %% API
 -export([type/1, next_true/1, list_files/2, show_dict_keys/1,
   dict_keys_to_list/1, search_code_loaded/1, code_loaded_most_exports/0,
-  most_common_func_name/0]).
+  increment_map/2, single_module_func_names_count/1,
+  code_loaded_func_names_count/0, merge_counts/2,
+  most_common_func_name/0, unique_func_names/0]).
 
 type(X) ->
   M = #{
@@ -61,7 +64,7 @@ list_files(Dir, SearchString) ->
 %% returns all keys (the first tuple value) of a given list
 %% dict's are commonly output as a list of 2 item tuples
 show_dict_keys([]) -> ok;
-show_dict_keys([H|T]) ->
+show_dict_keys([H | T]) ->
   {Key, _} = H,
   io:format("~p~n", [Key]),
   show_dict_keys(T).
@@ -73,9 +76,9 @@ dict_keys_to_list(L) ->
   dict_keys_to_list(L, []).
 %% private
 dict_keys_to_list([], L) -> L;
-dict_keys_to_list([H|T], L) ->
+dict_keys_to_list([H | T], L) ->
   {Key, _} = H,
-  L2 = [Key|L],
+  L2 = [Key | L],
   dict_keys_to_list(T, L2).
 
 
@@ -88,21 +91,114 @@ search_code_loaded(SearchString) ->
 
 
 %% return the name of the module with the most exported functions
+%% @returns {atom, integer}
 code_loaded_most_exports() ->
   Modules = dict_keys_to_list(code:all_loaded()),
   code_loaded_most_exports(Modules, undefined, 0).
 
-code_loaded_most_exports([], Module, Max) -> {Module, Max};
-code_loaded_most_exports([H|T], Module, Max) ->
-  ModuleInfo = apply(H, module_info, []),
-  [_H1,H2|_T2] = ModuleInfo,
-  {exports, FuncList} = H2,
+code_loaded_most_exports([], MaxModule, Max) -> {MaxModule, Max};
+code_loaded_most_exports([Module | T], MaxModule, Max) ->
+  FuncList = module_func_list(Module),
   FuncCount = length(FuncList),
   if FuncCount > Max ->
-      NewMax = FuncCount,
-      NewModule = H;
+    NewMax = FuncCount,
+    NewModule = Module;
     true ->
       NewMax = Max,
-      NewModule = Module
+      NewModule = MaxModule
   end,
   code_loaded_most_exports(T, NewModule, NewMax).
+
+
+%% take a map and increment the count of the key being present if it's
+%% already present, if not present, then set to 1
+%% @returns map
+increment_map(Key, Map) ->
+  try maps:get(Key, Map) of
+    Val ->
+      Map#{Key => Val + 1}
+  catch
+    error:{badkey, Key} -> Map#{Key => 1}
+  end.
+
+
+%% returns the list of exported functions in a module
+%% @returns list of {atom, integer}
+module_func_list(Module) ->
+  ModuleInfo = apply(Module, module_info, []),
+  [_Module, Exports | _T] = ModuleInfo,
+  {exports, FuncList} = Exports,
+  FuncList.
+
+
+%% returns the number of times a function name is used withing a given module
+%% @returns map
+single_module_func_names_count(Module) ->
+  FuncList = module_func_list(Module),
+  map_of_key_counts(FuncList).
+
+map_of_key_counts(L) ->
+  map_of_key_counts(L, #{}).
+
+map_of_key_counts([], Map) -> Map;
+map_of_key_counts([H | T], Map) ->
+  {Key, _} = H,
+  Map2 = increment_map(Key, Map),
+  map_of_key_counts(T, Map2).
+
+
+%% returns the count of func name usage for `code:all_loaded()`
+%% @returns map
+code_loaded_func_names_count() ->
+  code_loaded_func_names_count(code:all_loaded(), #{}).
+
+code_loaded_func_names_count([], Map) -> Map;
+code_loaded_func_names_count([H | T], Map) ->
+  {Module, _} = H,
+  Map2 = single_module_func_names_count(Module),
+  code_loaded_func_names_count(T, merge_counts(Map, Map2)).
+
+
+%% merges 2 Maps of counts so that the result is a map of the total counts
+%% @returns map
+merge_counts(Map1, Map2) ->
+  L = maps:to_list(Map2),
+  combine_counts(L, Map1).
+
+combine_counts([], Map) -> Map;
+combine_counts([H | T], Map) ->
+  {Key, Value} = H,
+  Map2 = Map#{Key => Value + maps:get(Key, Map, 0)},
+  combine_counts(T, Map2).
+
+
+%% get most common function name
+%% answer... is `module_info`
+%% all:code_loaded() - returns 152 modules
+%% most common func name is module_info w/ 304 because each module
+%% exports this function 2x w/ an arity of 0 and 1
+%% @returns {atom, integer}
+most_common_func_name() ->
+  L = maps:to_list(code_loaded_func_names_count()),
+  most_common_func_name(L).
+
+most_common_func_name(L) ->
+  most_common_func_name(L, {undefined, 0}).
+
+most_common_func_name([], MaxFunc) -> MaxFunc;
+most_common_func_name([H | T], MaxFunc) ->
+  {_Func, Count} = H,
+  {_MaxFuncName, MaxFuncCount} = MaxFunc,
+  if
+    Count > MaxFuncCount -> NewMaxFunc = H;
+    true -> NewMaxFunc = MaxFunc
+  end,
+  most_common_func_name(T, NewMaxFunc).
+
+
+%% returns a Map of unique function names from `code:all_loaded()`
+%% @returns map
+unique_func_names() ->
+  L = maps:to_list(code_loaded_func_names_count()),
+  L2 = lists:filter(fun({_, X}) -> X =:= 1 end, L),
+  maps:from_list(L2).

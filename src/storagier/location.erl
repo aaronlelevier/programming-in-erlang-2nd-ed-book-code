@@ -10,7 +10,7 @@
 -author("aaron").
 
 %% API
--export([test/0, distance/2, available/2, available_units/1]).
+-export([test/0, distance/2, is_available/2, available_units/1]).
 
 -include_lib("records.hrl").
 
@@ -27,7 +27,7 @@ distance(Location1, Location2) ->
 %% returns a boolean if the Location is available for the request
 %% Amount of storage, which is an integer Amount of units needed
 %% @returns boolean
-available(Location, Amount) ->
+is_available(Location, Amount) ->
    available_units(Location) - Amount >= 0.
 
 
@@ -56,9 +56,9 @@ test_distance() ->
 test_available() ->
   Location = #location{units = #units{total = 20, in_use = 15}},
   % not available case
-  false = available(Location, 10),
+  false = is_available(Location, 10),
   % available
-  true = available(Location, 5),
+  true = is_available(Location, 5),
   ok.
 
 

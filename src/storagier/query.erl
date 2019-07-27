@@ -31,7 +31,7 @@ available(Amount, LatLon, Locations) ->
     fun(Location) ->
       location_is_nearby(LatLon, Location) and
       location_is_in_radius(LatLon, Location) and
-      location:available(Location, Amount)
+      location:is_available(Location, Amount)
     end,
     Locations).
 
@@ -103,7 +103,7 @@ test_available() ->
   Location4 = #location{
     units = #units{total = 20, in_use = 15},
     latlon = #latlon{lat = 1, lon = 1}},
-  false = location:available(Location4, Amount),
+  false = location:is_available(Location4, Amount),
 
   % locations to check
   Locations = [Location1, Location2, Location3, Location4],

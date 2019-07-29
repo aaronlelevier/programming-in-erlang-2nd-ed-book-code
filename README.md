@@ -1,6 +1,6 @@
 # Programming in Erlang 2nd Ed. Book code and practice
 
-This repo is me learning Erlang with the future hope of using Erlang in the future in a production system
+This repo is me learning Erlang with the future hope of using Erlang in production
 
 # References
 

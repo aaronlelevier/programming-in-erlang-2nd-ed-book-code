@@ -18,7 +18,12 @@
 
 
 %% returns the distance between two Locations
-%% @returns float
+-type distance() :: float().
+-spec distance(Location1, Location2) -> Distance when
+  Location1 :: #location{},
+  Location2 :: #location{},
+  Distance :: distance().
+
 distance(Location1, Location2) ->
   latlon:distance(
     Location1#location.latlon, Location2#location.latlon).
@@ -26,13 +31,15 @@ distance(Location1, Location2) ->
 
 %% returns a boolean if the Location is available for the request
 %% Amount of storage, which is an integer Amount of units needed
-%% @returns boolean
+-spec is_available(#location{}, integer()) -> boolean().
+
 is_available(Location, Amount) ->
    available_units(Location) - Amount >= 0.
 
 
 %% returns the number of available units
-%% @returns integer
+-spec available_units(#location{}) -> integer().
+
 available_units(Location) ->
   units:available(Location#location.units).
 

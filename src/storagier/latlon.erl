@@ -25,7 +25,8 @@
 
 
 %% returns the distance between 2 LatLon points
-%% @returns float
+-spec distance(#latlon{}, #latlon{}) -> float().
+
 distance(LatLon1, LatLon2) ->
   Lat1 = radians(LatLon1#latlon.lat),
   Lon1 = radians(LatLon1#latlon.lon),
@@ -46,7 +47,8 @@ distance(LatLon1, LatLon2) ->
 
 
 %% returns the LatLon as a 2 item tuple
-%% @returns {float, float}
+-spec to_tuple(#latlon{}) -> {float(), float()}.
+
 to_tuple(LatLon) ->
   {LatLon#latlon.lat, LatLon#latlon.lon}.
 

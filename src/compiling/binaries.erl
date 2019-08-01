@@ -10,8 +10,9 @@
 -author("aaron").
 
 %% API
--export([reverse/1, term_to_packet/1, packet_to_term/1, tests/0,
-  reverse_bitstring/1, start/0]).
+-export([reverse/1, term_to_packet/1, packet_to_term/1,
+  reverse_bitstring/1, test/0, binary_to_bitstring/1, start/0]).
+
 
 start() -> ok.
 
@@ -35,18 +36,35 @@ packet_to_term(Packet) ->
   binary_to_term(Bin).
 
 
+%% ch-7 ex-5 reverse bits in a binary
+reverse_bitstring(Binary) ->
+  Bitstring = binary_to_bitstring(Binary),
+  lists:reverse(Bitstring).
+
+
+%% converts a Binary to a Bitstring
+
+-spec binary_to_bitstring(Binary) -> BitString when
+  Binary :: binary(),
+  BitString :: [byte()].
+
+binary_to_bitstring(Binary) ->
+  [X || <<X:1>> <= Binary].
+
+
+%%%%%% Tests %%%%%%
+
+
 %% ch-7 ex-4 - write tests for the above functions
-tests() ->
+test() ->
   Term = {state_of_aaron, "excited"},
   Packet = term_to_packet(Term),
   Term = packet_to_term(Packet),
+  io:fwrite("binaries - tests passed~n"),
   ok.
 
 
-%% ch-7 ex-5 reverse bits in a binary
-reverse_bitstring(BitString) ->
-  BitList = [X || <<X:1>> <= BitString],
-  lists:reverse(BitList).
+%%%%%% Example %%%%%%
 
 
 %% 153> f().

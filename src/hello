@@ -1,5 +1,0 @@
-#!/usr/bin/env escript
-
-main(Args) ->
-  io:format("Yell Wat~n").
-

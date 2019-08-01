@@ -10,6 +10,8 @@
 -author("aaron").
 
 %% API
--export([getList/0]).
+-export([getList/0, start/0]).
+
+start() -> ok.
 
 getList() -> lists:seq(1,5).

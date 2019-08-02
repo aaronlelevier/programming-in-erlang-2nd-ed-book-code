@@ -17,13 +17,19 @@
 
 loop() ->
   receive
-    {rectangle, Height, Width} ->
-      io:format("Rectangle area is: ~p~n", [Height * Width]),
+    {From, {rectangle, Height, Width}} ->
+%%      io:format("Rectangle area is: ~p~n", [Height * Width]),
+      From ! Height * Width,
       loop();
-    {square, Side} ->
-      io:format("Square area is: ~p~n", [Side * Side]),
+    {From, {square, Side}} ->
+%%      io:format("Square area is: ~p~n", [Side * Side]),
+      From ! Side * Side,
       loop();
-    {circle, Radius} ->
-      io:format("Circle area is: ~p~n", [2 * math:pi() * Radius]),
+    {From, {circle, Radius}} ->
+%%      io:format("Circle area is: ~p~n", [2 * math:pi() * Radius]),
+      From ! 2 * math:pi() * Radius,
+      loop();
+    Request ->
+      io:format("No match: ~p~n", [Request]),
       loop()
   end.

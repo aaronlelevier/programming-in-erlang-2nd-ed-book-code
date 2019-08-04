@@ -10,14 +10,12 @@
 -author("aaron lelevier").
 
 %% API
--export([loop/0, rpc/2]).
+-export([start/0, area/2, loop/0]).
 
-rpc(Pid, Request) ->
-  Pid ! {self(), Request},
-  receive
-    {Pid, Response} ->
-      Response
-  end.
+start() -> spawn(area_server1, loop, []).
+
+area(Pid, What) ->
+  rpc(Pid, What).
 
 loop() ->
   receive
@@ -30,4 +28,13 @@ loop() ->
     {From, Other} ->
       From ! {self(), {error, Other}},
       loop()
+  end.
+
+%% private
+
+rpc(Pid, Request) ->
+  Pid ! {self(), Request},
+  receive
+    {Pid, Response} ->
+      Response
   end.

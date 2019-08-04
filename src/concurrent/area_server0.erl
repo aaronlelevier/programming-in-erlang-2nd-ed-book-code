@@ -12,8 +12,10 @@
 -chapter(["12"]).
 
 %% API
--export([loop/0]).
+-export([loop/0, start/0]).
 
+
+start() -> ok.
 
 loop() ->
   receive

@@ -10,10 +10,25 @@
 -author("aaron lelevier").
 
 %% API
--export([max/1]).
+-export([start/0, priority_receive/0, max/1]).
 %% max(N)
 %%   Create N processes then destroy them
 %%   See how much time this takes
+
+start() ->
+  spawn(limb_misc, priority_receive, []).
+
+
+priority_receive() ->
+  receive
+    {alarm, X} ->
+      {alarm, X}
+  after 0 ->
+    receive
+      Any -> Any
+    end
+  end.
+
 
 max(N) ->
   Max = erlang:system_info(process_limit),

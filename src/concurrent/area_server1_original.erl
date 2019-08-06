@@ -9,16 +9,12 @@
 -module(area_server1_original).
 -author("aaron lelevier").
 
+-import(utils, [rpc/2]).
+
 %% API
--export([rpc/2, loop/0]).
+-export([loop/0]).
 
-rpc(Pid, Request) ->
-  Pid ! {self(), Request},
-  receive
-    Response ->
-      Response
-  end.
-
+%% replies with a message
 loop() ->
   receive
     {From, {rectangle, Width, Ht}} ->

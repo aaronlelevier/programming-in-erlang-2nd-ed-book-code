@@ -14,6 +14,7 @@
 %% API
 -export([loop/0]).
 
+%% prints the answer to stdout
 loop() ->
   receive
     {rectangle, Height, Width} ->

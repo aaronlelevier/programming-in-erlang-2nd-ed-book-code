@@ -34,7 +34,7 @@ sleep_forever() ->
 
 %% TODO: always matching on the 2nd receive statement, need to learn how
 %% to pre-load messages in the mailbox, then call this function and
-%% the 1st receive should be evaulated
+%% the 1st receive should be evaluated
 priority_receive() ->
   receive
     {alarm, X} ->

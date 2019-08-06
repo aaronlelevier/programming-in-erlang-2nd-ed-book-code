@@ -22,5 +22,8 @@ loop() ->
       loop();
     {square, Side} ->
       io:format("Square area is: ~p~n", [Side * Side]),
+      loop();
+    {circle, Radius} ->
+      io:format("Circle area is: ~p~n", [2 * math:pi() * Radius]),
       loop()
   end.

@@ -2,15 +2,19 @@
 %%% @author aaron lelevier
 %%% @copyright (C) 2019, <COMPANY>
 %%% @doc
-%%%
+%%% How to get the number of CPUs on my Mac (for ex2):
+%%% $ sysctl hw.physicalcpu hw.logicalcpu
 %%% @end
 %%% Created : 06. Aug 2019 19:59
 %%%-------------------------------------------------------------------
 -module(ch12_exercises).
 -author("aaron lelevier").
 
+-import(processes, [max/1]).
+
 %% API
--export([init/0, loop/1, start_and_will_error/2, start_w_guard/2]).
+-export([init/0, loop/1, start_and_will_error/2, start_w_guard/2,
+  ex2/0]).
 
 %% use to spawn new a Process for `loop` to do it's work
 init() ->
@@ -50,3 +54,20 @@ loop(Minutes) ->
     end
   end.
 
+
+%% ex-2 spawn different amounts of process and plot creation time
+ex2() ->
+  % write header
+  file:write_file("/tmp/plot", "Total,PerProcess\n"),
+  Start = 1,
+  % must be +1 the desired final log due to pattern match on final loop
+  Max = 11,
+  for(Start, Max).
+
+for(N, N) -> ok;
+for(I, N) ->
+  io:fwrite("processing results for ~pk~n", [I]),
+  {Total, PerProcess} = processes:max(I*1000),
+  file:write_file("/tmp/plot", io_lib:fwrite("~p,~p\n",[Total, PerProcess]),
+    [append]),
+  for(I+1, N).

@@ -15,11 +15,12 @@
 
 init(N) ->
   Id = integer_to_atom(N),
+
   Fun = fun(N2) ->
     Pid = spawn(?MODULE, loop, [N2]),
     io:fwrite("Pid: ~p~n", [Pid]),
     register(Id, Pid) end,
-%%  register(Id, spawn(?MODULE, loop, [N])).
+
   for(1, N, Fun).
 
 

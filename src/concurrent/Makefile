@@ -11,11 +11,12 @@ ERL = erl -boot start_clean
 # If the modules don't fit onto one line add a \ character
 # to the end of the line and continue on the next line
 # Edit the lines below
-MODS = area_server0
+MODS = ring utils
 
 all: compile
-	${ERL} -pa '/Users/aaron/Documents/erlang/src/concurrent' \
-		-s area_server0 start
+	${ERL} -pa '/Users/aaron/Documents/erlang/src/compiling' \
+		-s ring \
+		-s utils
 
 compile: ${MODS:%=%.beam}
 

@@ -10,7 +10,10 @@
 -author("aaron lelevier").
 
 %% API
--export([rpc/2, reply/0]).
+-export([start/0, rpc/2, reply/0]).
+
+
+start() -> ok.
 
 
 %% self() is included here, so the receive statement only matches

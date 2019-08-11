@@ -123,7 +123,17 @@ flush() ->
       io:fwrite("received: ~p~n", [Response]),
       Response,
       flush()
-  after 1000 ->
+  after 0 ->
     io:fwrite("no more messages~n"),
-    false
+    true
+  end.
+
+%% flush messages and but don't log to stdout
+flush_buffer() ->
+  receive
+    _Any ->
+      flush_buffer()
+  after 0 ->
+    io:fwrite("no more messages~n"),
+    true
   end.

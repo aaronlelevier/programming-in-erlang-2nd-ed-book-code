@@ -54,3 +54,15 @@ any_rpc(Pid, Request) ->
   after 5000 ->
     io:fwrite("any_server_rpc timeout")
   end.
+
+%% timeouts
+
+%% logs the `wall_clock` time of the sleep, which is the same as `Time` +/- 1 ms
+timed_sleep(Time) ->
+  statistics(wall_clock),
+  receive
+  after Time ->
+    {_, TimeElapsed} = statistics(wall_clock),
+    io:fwrite("time elapsed: ~p~n", [TimeElapsed]),
+    done
+  end.

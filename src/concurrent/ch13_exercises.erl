@@ -92,3 +92,41 @@ start_ex3(Time) ->
 my_spawn(Mod, Func, Args, Time) ->
   timer:kill_after(Time),
   my_spawn(Mod, Func, Args).
+
+
+%% ex-4 - func that every 5 seconds says "I'm still alive" and func that
+%% monitors and restarts the 1st process if it dies
+
+start_ex4() ->
+  {Pid, Ref} = spawn_logger(),
+  Pid2 = spawn(?MODULE, restarter, [Pid, Ref]),
+  {Pid, Pid2}.
+
+
+spawn_logger() ->
+  spawn_monitor(?MODULE, log_i_am_still_alive, []).
+
+
+log_i_am_still_alive() ->
+  receive
+    X ->
+      list_to_float(X)
+  after 5000 ->
+    io:fwrite(
+      "~p time:~p I'm still alive~n", [self(), erlang:universaltime()]),
+    timer:sleep(5000),
+    log_i_am_still_alive()
+  end.
+
+
+restarter(Pid, Ref) ->
+  receive
+    {'DOWN', Ref, process, Pid, Why} ->
+      io:fwrite("restarting b/c:~p~n", [Why]),
+      {Pid, Ref} = spawn_logger(),
+      restarter(Pid, Ref);
+    Request ->
+      io:fwrite("unmatched request:~p~n", Request),
+      {Pid, Ref} = spawn_logger(),
+      restarter(Pid, Ref)
+  end.

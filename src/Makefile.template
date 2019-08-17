@@ -30,11 +30,11 @@ MODS = hello
 # # the subdirs target compiles any code in
 # # sub-directories
 # subdirs:
-#        cd storagier; $(MAKE)
+#        cd old_storagier; $(MAKE)
 #        cd dialyzer; $(MAKE)
 
 #  # remove all the code
 #  clean:
 #      rm -rf *.beam erl_crash.dump
-#      cd storagier; $(MAKE) clean
+#      cd old_storagier; $(MAKE) clean
 #      cd dialyzer; $(MAKE) clean

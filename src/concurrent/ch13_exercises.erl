@@ -97,36 +97,145 @@ my_spawn(Mod, Func, Args, Time) ->
 %% ex-4 - func that every 5 seconds says "I'm still alive" and func that
 %% monitors and restarts the 1st process if it dies
 
+%% moves timeout configuration outside of `log_i_am_still_alive`
+%% can also no be used elsewhere
+-define(TIMEOUT, 5000).
+
+%% start main loop for ex-4
 start_ex4() ->
-  {Pid, Ref} = spawn_logger(),
-  Pid2 = spawn(?MODULE, restarter, [Pid, Ref]),
-  {Pid, Pid2}.
+  spawn(?MODULE, supervisor, []).
 
 
-spawn_logger() ->
-  spawn_monitor(?MODULE, log_i_am_still_alive, []).
-
-
-log_i_am_still_alive() ->
+%% watches our "worker" and if it dies, restarts it
+supervisor() ->
+  {Pid, Ref} = respawn(),
   receive
-    X ->
-      list_to_float(X)
-  after 5000 ->
-    io:fwrite(
-      "~p time:~p I'm still alive~n", [self(), erlang:universaltime()]),
-    timer:sleep(5000),
-    log_i_am_still_alive()
+    {'DOWN', Ref, process, Pid, Why} ->
+      io:fwrite("worker Pid:~p died because:~p~n", [Pid, Why]),
+      io:fwrite("re-spawning~n"),
+      supervisor()
   end.
 
 
-restarter(Pid, Ref) ->
+respawn() ->
+  {Pid, Ref} = spawn_monitor(?MODULE, log_i_am_still_alive, []),
+  % don't need to de-register the previous "worker" Pid
+  % just works. If previous Pid dies it's auto de-registered
+  register(worker, Pid),
+  {Pid, Ref}.
+
+
+log_i_am_still_alive() ->
+    io:fwrite(
+      "~p time:~p I'm still alive~n", [self(), erlang:universaltime()]),
+    timer:sleep(?TIMEOUT),
+    log_i_am_still_alive().
+
+
+%% ex-5 - spawn several worker processes, and if any of them die
+%% restart them
+%% works by registering each worker under an "integer" Name
+%% so we can kill by Name, and a new worker will be spawned
+%% by incrementing the "integer" Name and then register
+
+%% TODO: this SO Answer on how to do this would be more idiomatic
+%% https://stackoverflow.com/questions/44250378/erlang-monitor-multiple-processes
+
+-define(WORKER_COUNT, 3).
+
+start_ex5() ->
+  spawn(?MODULE, supervisor2, []).
+
+supervisor2() ->
+  init_spawn(),
+  loop_single(?WORKER_COUNT).
+
+init_spawn() ->
+  init_spawn(0, ?WORKER_COUNT).
+
+init_spawn(Max, Max) -> done;
+init_spawn(Min, Max) ->
+  io:fwrite("int_spawn Min:~p~n", [Min]),
+  spawn_single(Min),
+  init_spawn(Min+1, Max).
+
+loop_single(Count) ->
   receive
-    {'DOWN', Ref, process, Pid, Why} ->
-      io:fwrite("restarting b/c:~p~n", [Why]),
-      {Pid, Ref} = spawn_logger(),
-      restarter(Pid, Ref);
-    Request ->
-      io:fwrite("unmatched request:~p~n", Request),
-      {Pid, Ref} = spawn_logger(),
-      restarter(Pid, Ref)
+    {'DOWN', _Ref, process, Pid, Why} ->
+      io:fwrite("worker Pid:~p died because:~p~n", [Pid, Why]),
+      io:fwrite("re-spawning~n"),
+      % retrieve registered name of process that died, so we can
+      % re-register under the same name
+      spawn_single(Count),
+      loop_single(Count+1)
+  end.
+
+spawn_single(Min) ->
+  {Pid, _Ref} = spawn_monitor(?MODULE, log_i_am_still_alive, []),
+  Name = utils:integer_to_atom(Min),
+  register(Name, Pid),
+  io:fwrite("spawn_single spawned:~p Name:~p~n", [Pid, Name]),
+  Pid.
+
+
+%% ch-13 ex-6 - have a Supervisor monitor workers, and if one dies,
+%% kill all workers and re-spawn
+
+start_ex6() ->
+  spawn(?MODULE, supervisor3, []).
+
+supervisor3() ->
+  % register Supervisor as a system process
+  process_flag(trap_exit, true),
+  % start workers
+  LastWorkerPid = spawn_linked_workers(),
+  io:fwrite(
+    "LastWorkerPid:~p, Name:~p~n",
+    [LastWorkerPid, utils:pid_name(LastWorkerPid)]),
+  loop_watch_linked_workers(?WORKER_COUNT, LastWorkerPid).
+
+spawn_linked_workers() ->
+  % ? does "name explaining VAR work here ?
+  spawn_linked_workers(0, ?WORKER_COUNT, _PrevWorkerPid = undefined).
+
+spawn_linked_workers(Max, Max, LastWorkerPid) -> LastWorkerPid;
+spawn_linked_workers(Min, Max, PrevWorkerPid) ->
+  Pid = spawn_linked_worker(Min, PrevWorkerPid),
+  spawn_linked_workers(Min+1, Max, Pid).
+
+spawn_linked_worker(Min, PrevWorkerPid) ->
+  io:fwrite("PrevWorkerPid:~p~n", [PrevWorkerPid]),
+  Pid = spawn_link(?MODULE, link_and_log, [PrevWorkerPid]),
+  Name = utils:integer_to_atom(Min),
+  register(Name, Pid),
+  io:fwrite("spawn_single spawned:~p Name:~p~n", [Pid, Name]),
+  Pid.
+
+loop_watch_linked_workers(Count, LastWorkerPid) ->
+  receive
+    {'EXIT', Pid, Why} ->
+      io:fwrite("worker Pid:~p died because:~p~n", [Pid, Why]),
+      io:fwrite("re-spawning~n"),
+      % retrieve registered name of process that died, so we can
+      % re-register under the same name
+      NewWorkerPid = spawn_linked_worker(Count, LastWorkerPid),
+      loop_watch_linked_workers(Count+1, NewWorkerPid)
+  end.
+
+%% does "maybe link" as a single action to the PrevWorkerPid, then
+%% does an infinite loop every ?TIMEOUT that itself is still alive
+link_and_log(PrevWorkerPid) ->
+  maybe_link(PrevWorkerPid),
+  log_i_am_still_alive().
+
+maybe_link(Pid) ->
+  try
+    link(Pid)
+  catch
+    % Pid trying to link has already died case
+    error:noproc  ->
+      io:fwrite("noproc:~p~n", [Pid]);
+    % Pid == undefined case
+    error:badarg ->
+      io:fwrite("badarg:~p~n", [Pid])
   end.

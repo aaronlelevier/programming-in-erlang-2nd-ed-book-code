@@ -33,7 +33,7 @@ pid_list(N, M) ->
 pid_list(0, _N2, _M, List) -> List;
 pid_list(N, N2, M, List) ->
   Pid = spawn(?MODULE, loop, [N2, M]),
-  Name = integer_to_atom(N),
+  Name = utils:integer_to_atom(N),
   register(Name, Pid),
   pid_list(N - 1, N2, M, [Pid | List]).
 
@@ -46,7 +46,7 @@ loop(N, M) ->
     {From, Message} ->
       io:fwrite(
         "Pid:~p From:~p Name:~p Received:~p M:~p~n",
-        [self(), From, pid_name(self()), Message, M]),
+        [self(), From, utils:pid_name(self()), Message, M]),
       if
         M > 1 ->
           send_to_next(N, "Pid Msg", self()),
@@ -71,28 +71,13 @@ for(Max, Msg, [H | T]) ->
 
 % if you are the Max, send it to the first else send Msg to next
 send_to_next(Max, Msg, Pid) ->
-  Name = pid_name(Pid),
-  PidValue = atom_to_integer(Name),
+  Name = utils:pid_name(Pid),
+  PidValue = utils:atom_to_integer(Name),
   if
     PidValue == Max ->
       Next = whereis('1'),
       Next ! {self(), Msg};
     true ->
-      Next = whereis(integer_to_atom(PidValue + 1)),
+      Next = whereis(utils:integer_to_atom(PidValue + 1)),
       Next ! {self(), Msg}
   end.
-
-
-%% helpers
-
-integer_to_atom(N) ->
-  list_to_atom(integer_to_list(N)).
-
-
-atom_to_integer(A) ->
-  list_to_integer(atom_to_list(A)).
-
-
-pid_name(Pid) ->
-  {registered_name, Name} = process_info(Pid, registered_name),
-  Name.

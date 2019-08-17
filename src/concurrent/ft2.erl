@@ -38,7 +38,7 @@ for_spawn_link(L) ->
   [H|T] = L,
   Pid = spawn_link(H),
   ft:set_on_exit_handler(Pid),
-  Name = four:integer_to_atom(length(T)),
+  Name = utils:integer_to_atom(length(T)),
   register(Name, Pid),
   for_spawn_link(T).
 

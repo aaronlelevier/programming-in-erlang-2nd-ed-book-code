@@ -10,7 +10,8 @@
 -author("aaron lelevier").
 
 %% API
--export([start/0, rpc/2, reply/0]).
+-export([start/0, rpc/2, reply/0, integer_to_atom/1, atom_to_integer/1,
+  pid_name/1]).
 
 
 start() -> ok.
@@ -33,3 +34,16 @@ reply() ->
       From ! {self(), "Reply: " ++ Greeting},
       reply()
   end.
+
+
+integer_to_atom(N) ->
+  list_to_atom(integer_to_list(N)).
+
+
+atom_to_integer(A) ->
+  list_to_integer(atom_to_list(A)).
+
+
+pid_name(Pid) ->
+  {registered_name, Name} = process_info(Pid, registered_name),
+  Name.

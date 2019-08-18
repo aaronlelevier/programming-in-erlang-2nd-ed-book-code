@@ -16,6 +16,9 @@
 -export([]).
 
 
+init() -> ok.
+
+
 -spec start() -> boolean().
 
 start() -> register(kvs, spawn(fun() -> loop() end)).

@@ -10,9 +10,10 @@
 -author("aaron lelevier").
 
 %% API
--export([start/0, rpc/2, reply/0, integer_to_atom/1, atom_to_integer/1,
+-export([init/0, start/0, rpc/2, reply/0, integer_to_atom/1, atom_to_integer/1,
   pid_name/1]).
 
+init() -> ok.
 
 start() -> ok.
 

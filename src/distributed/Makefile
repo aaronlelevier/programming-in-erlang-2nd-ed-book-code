@@ -11,13 +11,12 @@ ERL = erl -boot start_clean
 # If the modules don't fit onto one line add a \ character
 # to the end of the line and continue on the next line
 # Edit the lines below
-MODS = dist_demo kvs
+MODS = inventory
 
 all: compile
 	${ERL} -pa '/Users/aaron/Documents/erlang/src/compiling' \
-		-s dist_demo init \
-		-s kvs init \
-		-sname ${NODE}
+		-s inventory init \
+		-sname bilbo # <- client name
 
 compile: ${MODS:%=%.beam}
 

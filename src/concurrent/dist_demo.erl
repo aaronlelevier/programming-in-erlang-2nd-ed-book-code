@@ -50,3 +50,8 @@ loop() ->
       Pid ! {self(), (catch apply(M, F, A))},
       loop()
   end.
+
+%% YAFS - Yet Another File Server
+
+ls() ->
+  file:list_dir(".").

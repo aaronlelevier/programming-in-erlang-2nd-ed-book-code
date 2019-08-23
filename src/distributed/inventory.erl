@@ -1,7 +1,10 @@
 %%%-------------------------------------------------------------------
 %%% @author aaron lelevier
 %%% @copyright (C) 2019, <COMPANY>
-%%% @doc Usage:
+%%% @doc
+%%% Usage:
+%%%   init Server with: $ export NODE=gandalf && make
+%%%   init Client with: $ export NODE=<client-name> && make
 %%%
 %%% @end
 %%% Created : 20. Aug 2019 06:28
@@ -43,9 +46,8 @@ init_server() ->
 
 % initialize total inventory at 10
 init_inventory() ->
-  io:fwrite("init_inventory~n"),
+  io:fwrite("initializing inventory~n"),
   InitialTotal = 10,
-  put(init_total, InitialTotal),
   put(total, InitialTotal),
   put(available, InitialTotal).
 
@@ -71,24 +73,69 @@ start_client(ServerPid) ->
   % if available == total, then no inventory is in use
   Total = Available,
 
-  % TODO: `reserve` could use a Map, where Key/Value = Pid/reserved
   % reserve some inventory
+  Amount = 4,
+  log_inventory(ServerPid),
+  {true, {available, NewCurAmount}} = rpc(
+    ServerPid, reserve, [Amount]),
+  io:fwrite("Reserved:~p NewCurAmount:~p~n", [Amount, NewCurAmount]),
 
   % `available` should now be: total - reserved
+  log_inventory(ServerPid),
+  NewCurAmount = rpc(ServerPid, available, []),
+  io:fwrite("NewCurAmount:~p~n", [NewCurAmount]),
+  NewCurAmount = 6,
 
   % reserve too much and get `error`
+  Amount2 = 7,
+  {false, {available, NewCurAmount2}} = rpc(
+    ServerPid, reserve, [Amount2]),
+  log_inventory(ServerPid),
+  NewCurAmount2 = 6,
 
-  % withdraw some ok
-
-  % check `reserved`
-
-  % withdraw too much and get error
-
-  % withdraw all that I have `reserved`
-
-  % new available == total
+  % TODO: implement how to return of some inventory
 
   ok.
+
+
+log_inventory(ServerPid) ->
+  io:fwrite("Total:~p Available:~p~n",
+    [rpc(ServerPid, total, []), rpc(ServerPid, available, [])]).
+
+
+reserve(Amount) ->
+  {IsAvailable, CurAmount} = check_available(Amount),
+  io:fwrite(
+    "IsAvailable:~p CurAmount:~p Amount:~p~n",
+    [IsAvailable, CurAmount, Amount]),
+
+  if IsAvailable == true ->
+      NewCurAmount = CurAmount - Amount,
+      put(self(), Amount),
+      put(available, NewCurAmount),
+      {true, {available, NewCurAmount}};
+    true ->
+      {false, {available, CurAmount}}
+  end.
+
+
+%% returns tuple of bool if request Amount is available
+%% and the Current Amount of available inventory
+
+-spec check_available(Amount) -> {boolean(), CurAmount} when
+  Amount :: integer(),
+  CurAmount :: integer().
+
+check_available(Amount) ->
+  X = get(available),
+  io:fwrite("check_available:~p~n", [X]),
+
+  if X >= Amount ->
+      {true, X};
+    true ->
+      {false, X}
+  end.
+
 
 %% rpc and loop
 
@@ -113,3 +160,8 @@ loop() ->
     Request ->
       {error, no_match, Request}
   end.
+
+
+%% tests
+
+% TODO: add tests

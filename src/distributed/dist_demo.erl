@@ -2,7 +2,7 @@
 %%% @author aaron lelevier
 %%% @copyright (C) 2019, <COMPANY>
 %%% @doc
-%%%
+%%% symlinked to `../concurrent/dist_demo.erl`
 %%% @end
 %%% Created : 18. Aug 2019 06:02
 %%%-------------------------------------------------------------------
@@ -55,3 +55,6 @@ loop() ->
 
 ls() ->
   file:list_dir(".").
+
+read(Filename) ->
+  file:read_file(Filename).

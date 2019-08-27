@@ -13,3 +13,4 @@ rel/example_project
 # intellij
 .idea/
 ProgrammingInErlang.iml
+*.tmp

@@ -8,11 +8,15 @@
 %%---
 %START:main
 -module(scavenge_urls).
--export([urls2htmlFile/2, bin2urls/1]).
+-export([urls2htmlFile/2, bin2urls/1, init/0]).
 -import(lists, [reverse/1, reverse/2, map/2]).
+
+init() -> ok.
 
 urls2htmlFile(Urls, File) ->         
     file:write_file(File, urls2html(Urls)).
+
+%% TODO: bin2urls - isn't returning all href links on a page
 
 bin2urls(Bin) ->  gather_urls(binary_to_list(Bin), []).
 

@@ -20,12 +20,12 @@ init() -> ok.
 %% whether or not the *.beam file has been compiled within a minute
 %% of the *.erl file
 
-one() ->
+check_compiled_files() ->
   Files = lib_find:files(".", "*.erl", true),
-  one_check(Files).
+  check_compiled_files2(Files).
 
-one_check([]) -> ok;
-one_check([H|T]) ->
+check_compiled_files2([]) -> ok;
+check_compiled_files2([H | T]) ->
   {ok, Info1} = file:read_file_info(H),
   {ok, Info2} = file:read_file_info(beam_file(H)),
   case dtime:same_ish(Info1#file_info.mtime, Info2#file_info.mtime) of
@@ -34,13 +34,73 @@ one_check([H|T]) ->
     false ->
       io:fwrite("N - ~p~n", [H])
   end,
-  one_check(T).
+  check_compiled_files2(T).
 
 -spec beam_file(Filename) -> {ok, BeamFilename} | error when
   Filename :: string(),
   BeamFilename :: string().
 
 beam_file(Filename) ->
-  [S1,S2|_] = string:replace(
+  [S1, S2 | _] = string:replace(
     Filename, filename:extension(Filename), ".beam"),
-  string:concat(S1,S2).
+  string:concat(S1, S2).
+
+
+%% ex-2 - compute the md5 hash of a file
+
+%% TODO: could add a switch that checks file size then either calls small or large function
+
+%% TODO: could rename to `small_file_md5`
+
+file_md5(Filename) ->
+  case file:read_file(Filename) of
+    {ok, Contents} ->
+      % `crypto:hash(md5, Contents)` could also be used here
+      erlang:md5(Contents);
+    {error, Reason} ->
+      {error, Reason}
+  end.
+
+
+%% ex-3 - compute the hash of a file that is ~100 MBs using:
+%% - erlang:md5_init
+%% - erlang:md5_update
+%% - erlang:md5_final
+
+large_file_md5(Filename) ->
+  Context = erlang:md5_init(),
+  case file:open(Filename, [read, binary, raw]) of
+    {ok, IoDevice} ->
+      large_file_md5(IoDevice, Context, 0);
+    {error, Reason} ->
+      {error, Reason}
+  end.
+
+large_file_md5(IoDevice, Context, Index) ->
+  % if increment of hashing is too small, not performant
+  Incr = 10000,
+  case file:pread(IoDevice, Index, Incr) of
+    {ok, Data} ->
+      NewContext = erlang:md5_update(Context, Data),
+      large_file_md5(IoDevice, NewContext, Index + Incr);
+    eof ->
+      erlang:md5_final(Context);
+    {error, Reason} ->
+      {error, Reason}
+  end.
+
+
+%% tests
+
+test() ->
+  ok = test_large_file_md5(),
+  ok.
+
+test_large_file_md5() ->
+  File = "/Users/aaron/Downloads/STRICTLY-REGGAE.mp3",
+
+  Context = large_file_md5(File),
+
+  true = is_binary(Context),
+  true = size(Context) > 0,
+  ok.

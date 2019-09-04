@@ -115,6 +115,65 @@ check_unique_jpgs1([], _Set) ->
   ok.
 
 
+%% ex-5 - use cache to store md5 checksum and recalculate when file is modified
+
+start_cached_md5() ->
+  register(md5_cache, spawn(?MODULE, cached_md5_server, [])).
+
+%% client
+get_cached_md5(File) ->
+  LastModified = last_modified(File),
+  md5_cache ! {self(), {File, LastModified}},
+  receive
+    {md5_cache, {IsFromCache, Md5}} ->
+      {IsFromCache, Md5};
+    Error ->
+      {error, Error}
+  after 500 ->
+    client_timeout
+  end.
+
+cached_md5_server() ->
+  % cache - key is Filename, value is a tuple of {LastModified, Md5Bin}
+  Cache = #{},
+  cached_md5_server_loop(Cache).
+
+%% TODO: `cached_md5_server_loop` is probably doing too much
+
+cached_md5_server_loop(Cache) ->
+  receive
+    {From, {File, NewLastModified}} ->
+      try maps:get(File, Cache) of
+        {LastModified, Md5Bin} ->
+          io:fwrite("Existing JPG:~p~n", [File]),
+          if LastModified =:= NewLastModified ->
+              io:fwrite("retrieving from cache~n"),
+              From ! {md5_cache, {true, Md5Bin}},
+              cached_md5_server_loop(Cache);
+            true ->
+              io:fwrite("bust cache~n"),
+              NewMd5Bin = file_md5(File),
+              NewCache = Cache#{File => {NewLastModified, NewMd5Bin}},
+              From ! {md5_cache, {false, NewMd5Bin}},
+              cached_md5_server_loop(NewCache)
+          end
+      catch
+        error:{badkey, Key} ->
+          io:fwrite("New JPG:~p~n", [Key]),
+          io:fwrite("adding to cache~n"),
+          NewMd52 = file_md5(File),
+          NewCache2 = Cache#{File => {last_modified(File), NewMd52}},
+          From ! {md5_cache, {false, NewMd52}},
+          cached_md5_server_loop(NewCache2)
+      end;
+    Error ->
+      {error, Error}
+  end.
+
+last_modified(File) ->
+  {ok, Info} = file:read_file_info(File),
+  Info#file_info.mtime.
+
 %% tests
 
 test() ->

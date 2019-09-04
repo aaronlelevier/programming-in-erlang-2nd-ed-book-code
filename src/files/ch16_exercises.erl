@@ -90,6 +90,31 @@ large_file_md5(IoDevice, Context, Index) ->
   end.
 
 
+%% ex-4 - compute the md5 of JPGs to see if any are the same
+
+unique_jpgs(Dir) ->
+  Jpgs = lib_find:files(Dir, "*.jpg", false),
+  Hashes = [file_md5(F) || F <- Jpgs],
+  check_unique_jpgs(lists:zip(Jpgs, Hashes)).
+
+check_unique_jpgs(L) ->
+  check_unique_jpgs1(L, sets:new()).
+
+check_unique_jpgs1([H|T], Set) ->
+  {File, Bin} = H,
+  InitSize = sets:size(Set),
+  Set2 = sets:add_element(Bin, Set),
+  NewSize = sets:size(Set2),
+  if InitSize =:= NewSize ->
+      io:fwrite("Existing JPG:~p~n", [File]);
+    true ->
+      io:fwrite("New JPG:~p~n", [File])
+  end,
+  check_unique_jpgs1(T, Set2);
+check_unique_jpgs1([], _Set) ->
+  ok.
+
+
 %% tests
 
 test() ->

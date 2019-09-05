@@ -11,12 +11,11 @@ ERL = erl -boot start_clean
 # If the modules don't fit onto one line add a \ character
 # to the end of the line and continue on the next line
 # Edit the lines below
-MODS = scavenge_urls ahttp
+MODS = twit_store ahttp
 
 all: compile
 	${ERL} -pa '/Users/aaron/Documents/erlang/src/files' \
-		-s scavenge_urls init \
-		-s ahttp start
+		-s twit_store init0
 
 compile: ${MODS:%=%.beam}
 

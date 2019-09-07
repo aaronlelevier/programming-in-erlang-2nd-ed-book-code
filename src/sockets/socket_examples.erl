@@ -39,10 +39,51 @@ nano_client_eval(Str) ->
 	    gen_tcp:close(Socket)
     end.
 
+%% aaron - start
+
+%% empty init for makefile
+
+init() -> ok.
+
+listen() ->
+	gen_tcp:listen(2345, [binary, {packet, 4},  %% (6)
+		{reuseaddr, true},
+		{active, true}]).
+
+log_pid() ->
+	io:fwrite("Pid:~p~n", [self()]).
+
+%% sequential server example
+
+start_seq_server() ->
+	log_pid(),
+	{ok, Listen} = listen(),
+	io:fwrite("Listening~n"),
+	seq_loop(Listen).
+
+seq_loop(Listen) ->
+	{ok, Socket} = gen_tcp:accept(Listen),
+	io:fwrite("Socket accepted~n"),
+	loop(Socket),
+	seq_loop(Listen).
+
+%% parallel server example
+
+start_parallel_server() ->
+	log_pid(),
+	{ok, Listen} = listen(),
+	spawn(fun() -> par_connect(Listen) end).
+
+par_connect(Listen) ->
+	log_pid(),
+	{ok, Socket} = gen_tcp:accept(Listen),
+	spawn(fun() -> par_connect(Listen) end),
+	loop(Socket).
+
+%% aaron - end
+
 start_nano_server() ->
-    {ok, Listen} = gen_tcp:listen(2345, [binary, {packet, 4},  %% (6)
-					 {reuseaddr, true},
-					 {active, true}]),
+    {ok, Listen} = listen(),
     {ok, Socket} = gen_tcp:accept(Listen),  %% (7)
     gen_tcp:close(Listen),  %% (8)
     loop(Socket).

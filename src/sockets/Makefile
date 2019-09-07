@@ -11,11 +11,11 @@ ERL = erl -boot start_clean
 # If the modules don't fit onto one line add a \ character
 # to the end of the line and continue on the next line
 # Edit the lines below
-MODS = twit_store
+MODS = socket_examples
 
 all: compile
 	${ERL} -pa '/Users/aaron/Documents/erlang/src/files' \
-		-s twit_store init0
+		-s socket_examples init
 
 compile: ${MODS:%=%.beam}
 

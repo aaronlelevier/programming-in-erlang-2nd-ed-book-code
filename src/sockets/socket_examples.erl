@@ -89,10 +89,9 @@ start_blocking_server() ->
   io:fwrite("listening~n"),
   {ok, Socket} = gen_tcp:accept(Listen),
   io:fwrite("accepted~n"),
-%%  inet:setopts(Socket, )
-  passive_loop(Socket).
+  blocking_loop(Socket).
 
-passive_loop(Socket) ->
+blocking_loop(Socket) ->
   io:fwrite("passive_loop~n"),
   % number of bytes to receive from client at 1 time\
 
@@ -101,7 +100,7 @@ passive_loop(Socket) ->
 
   % based on this: http://erlang.org/doc/man/inet.html#setopts-2
   % I might have to use the Option `raw` in order set the number
-  % of byptes that I want `gen_tcp:recv` to receive
+  % of bytes that I want `gen_tcp:recv` to receive
   case gen_tcp:recv(Socket, 0) of
     {ok, Bin} ->
       io:format("Server received binary:~p size:~p~n", [Bin, size(Bin)]),
@@ -113,6 +112,39 @@ passive_loop(Socket) ->
       gen_tcp:close(Socket);
     {error, Reason} ->
       {error, Reason}
+  end.
+
+%% partial blocking server example (hybrid approach)
+
+start_partial_blocking_server() ->
+  % passing the `{active, false}` Option here creates a blocking Server
+  {ok, Listen} = gen_tcp:listen(
+    2345, [binary, {packet, 4}, {reuseaddr, true}, {active, once}]),
+  io:fwrite("listening~n"),
+  seq_partial_blocking_loop(Listen).
+
+seq_partial_blocking_loop(Listen) ->
+  {ok, Socket} = gen_tcp:accept(Listen),
+  io:fwrite("accepted~n"),
+  partial_blocking_loop(Socket),
+  seq_partial_blocking_loop(Listen).
+
+partial_blocking_loop(Socket) ->
+  receive
+    {tcp, Socket, Bin} ->
+      io:format("Server received binary = ~p~n", [Bin]),
+      Str = binary_to_term(Bin), %% (9)
+      io:format("Server (unpacked)  ~p~n", [Str]),
+      Reply = lib_misc:string2value(Str), %% (10)
+      io:format("Server replying = ~p~n", [Reply]),
+      gen_tcp:send(Socket, term_to_binary(Reply)), %% (11)
+
+      % must call inet:setopts to reenable reception of the next msg
+      inet:setopts(Socket, [{active, once}]),
+
+      partial_blocking_loop(Socket);
+    {tcp_closed, Socket} ->
+      io:format("Server socket closed~n")
   end.
 
 %% helper for testing a client request

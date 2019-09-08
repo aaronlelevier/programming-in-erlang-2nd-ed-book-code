@@ -6,7 +6,7 @@
 %%  We make no guarantees that this code is fit for any purpose. 
 %%  Visit http://www.pragmaticprogrammer.com/titles/jaerlang2 for more book information.
 %%---
--module(socket_examples).
+-module(tcp).
 -compile(export_all).
 -import(lists, [reverse/1]).
 

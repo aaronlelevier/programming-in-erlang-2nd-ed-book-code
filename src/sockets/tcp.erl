@@ -83,10 +83,14 @@ par_connect(Listen) ->
 
 %% blocking server example
 
+start() ->
+  spawn(fun() -> start_blocking_server() end),
+  nano_client_eval("[1,2]").
+
 start_blocking_server() ->
   % passing the `{active, false}` Option here creates a blocking Server
   {ok, Listen} = gen_tcp:listen(2345, [binary, {packet, 4}, {reuseaddr, true}, {active, false}]),
-  io:fwrite("listening~n"),
+  io:fwrite("Server listening Listen:~p~n", [Listen]),
   {ok, Socket} = gen_tcp:accept(Listen),
   io:fwrite("accepted~n"),
   blocking_loop(Socket).

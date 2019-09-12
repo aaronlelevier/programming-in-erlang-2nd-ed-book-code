@@ -11,10 +11,11 @@ ERL = erl -boot start_clean
 # If the modules don't fit onto one line add a \ character
 # to the end of the line and continue on the next line
 # Edit the lines below
-MODS = tcp
+MODS = ch17_exercises tcp
 
 all: compile
 	${ERL} -pa '/Users/aaron/Documents/erlang/src/files' \
+		-s ch17_exercises init \
 		-s tcp init
 
 compile: ${MODS:%=%.beam}

@@ -123,7 +123,7 @@ consult1(S) ->
     end.
 
 dump(File, Term) ->
-    Out = File ++ ".tmp",
+    Out = File,
     io:format("** dumping to ~s~n",[Out]),
     {ok, S} = file:open(Out, [write]),
     io:format(S, "~p.~n",[Term]), 

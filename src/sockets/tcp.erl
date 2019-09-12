@@ -162,6 +162,7 @@ start_nano_server() ->
   {ok, Socket} = gen_tcp:accept(Listen), %% (7)
   gen_tcp:close(Listen), %% (8)
   loop(Socket).
+
 loop(Socket) ->
   receive
     {tcp, Socket, Bin} ->
@@ -175,6 +176,12 @@ loop(Socket) ->
     {tcp_closed, Socket} ->
       io:format("Server socket closed~n")
   end.
+
+%% tests sequential TCP server example
+test_start_nano_server() ->
+  spawn(fun() -> start_nano_server() end),
+  Msg = "list_to_tuple([2+3*4,10+20])",
+  nano_client_eval(Msg).
 
 error_test() ->
   spawn(fun() -> error_test_server() end),

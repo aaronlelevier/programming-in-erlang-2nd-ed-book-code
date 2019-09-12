@@ -14,7 +14,6 @@
 %% macros
 
 -define(PORT, 4000).
-
 -define(TIMEOUT, 1000).
 
 % placeholder `init` for Makefile

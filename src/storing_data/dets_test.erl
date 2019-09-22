@@ -16,9 +16,10 @@ init() -> ok.
 
 open(File) ->
   io:format("dets opened:~p~n", [File]),
+  Bool = filelib:is_file(File),
   case dets:open_file(?MODULE, [{file, File}]) of
     {ok, ?MODULE} ->
-      case filelib:is_file(File) of
+      case Bool of
         true -> void;
         false ->
           ok = dets:insert(?MODULE, {free, 1})
@@ -50,5 +51,35 @@ index2filename(Index) when is_integer(Index) ->
 
 %% aaron
 
+%% use to look up a key directly, for debugging
 lookup(Key) ->
   dets:lookup(?MODULE, Key).
+
+test() ->
+  File = random_filename(),
+  true = open(File),
+
+  Ret = try try_tests(File) of
+    ok ->
+      ok
+  catch
+    _:Why ->
+      {error, Why}
+  end,
+
+  % cleanup test file for `dets` by closing and deleting
+  close(),
+  file:delete(File),
+
+  Ret.
+
+try_tests(File) ->
+  io:format("tests wrapped in try/catch for File:~p~n", [File]),
+  [{free, 1}] = lookup(free),
+  ok.
+
+random_filename() ->
+  "test-" ++ integer_to_list(random_integer(10)).
+
+random_integer(Size) ->
+  round(rand:uniform() * math:pow(10, Size)).

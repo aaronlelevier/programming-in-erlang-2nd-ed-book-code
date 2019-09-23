@@ -6,7 +6,7 @@
 %%% @end
 %%% Created : 21. Sep 2019 5:26 AM
 %%%-------------------------------------------------------------------
--module(ets_test).
+-module(ex1).
 -author("aaron lelevier").
 -compile(export_all).
 -export([]).

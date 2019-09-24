@@ -14,10 +14,7 @@
 -export([]).
 
 
--ifdef(debug_flag).
--define(DEBUG(X), io:format("DEBUG ~p:~p ~p~n", [?MODULE, ?LINE, X])). -else.
--define(DEBUG(X), void).
--endif.
+-define(DEBUG(X), io:format("DEBUG ~p:~p ~p~n", [?MODULE, ?LINE, X])).
 
 % placeholder `init` for Makefile
 init() -> ok.
@@ -31,11 +28,11 @@ run(Request, Opts) ->
 
   % check the options if a DB call is needed
   DbResp = case is_db_request(Opts) of
-    true ->
-       db(Request);
-    false ->
-      #{}
-  end,
+             true ->
+               db(Request);
+             false ->
+               #{}
+           end,
   ok.
 %%  % return final response
 %%  Response = combine_responses([BizResp, DbResp])
@@ -55,14 +52,18 @@ db(Request) ->
   end,
   close_dets_table().
 
-create({create, Resource, Payload}) ->
+create({create, user, Payload}) ->
   io:format("~p~n", [Payload]),
-  #{data := Data} = Payload,
-  #{username := Username} = Data,
-  case dets:lookup(Resource, Username) of
+  #{data := UserData} = Payload,
+  #{username := Username} = UserData,
+  Key = {user, Username},
+  case table_lookup(Key) of
     [] ->
-      UserId = dets:insert(Resource, {Username, Data}),
-      {ok, {id, UserId}};
+      [{free, Free} | _] = table_lookup(free),
+      NewRecord = new_record(Free, UserData),
+      ok = table_insert({Key, NewRecord}),
+      table_insert({free, Free + 1}),
+      {ok, {id, Free}};
     _ ->
       throw({error, username_must_be_unique})
   end;
@@ -75,23 +76,31 @@ response(BizResp, DbResp) ->
 
 combine_responses(Responses) ->
   ?DEBUG(Responses),
- combine_responses(Responses, #{}).
-combine_responses([H|T], Acc) ->
+  combine_responses(Responses, #{}).
+combine_responses([H | T], Acc) ->
   Acc2 = maps:merge(Acc, H),
   combine_responses(T, Acc2);
 combine_responses([], Acc) ->
   Acc.
 
+new_record(Id, Data) ->
+  Data2 = Data#{id => Id},
+  L = maps:to_list(Data2),
+  list_to_tuple(L).
+
+%% table functions
+
+%% opens DETS table and initializes with entry `{free,1}` if it's a new table
 open_dets_table() ->
   File = atom_to_list(?MODULE),
   io:format("dets opened:~p~n", [File]),
   Bool = filelib:is_file(File),
   case dets:open_file(?MODULE, [{file, File}]) of
-    {ok, Ref} ->
+    {ok, _Ref} ->
       case Bool of
         true -> void;
         false ->
-          ok = dets:insert(Ref, {free, 1})
+          ok = table_insert({free, 1})
       end,
       true;
     {error, Reason} ->
@@ -99,6 +108,18 @@ open_dets_table() ->
       exit({eDetsOpen, File, Reason})
   end.
 
-
 close_dets_table() ->
   dets:close(?MODULE).
+
+table_lookup(Key) ->
+  dets:lookup(?MODULE, Key).
+
+table_insert(Data) ->
+  dets:insert(?MODULE, Data).
+
+table_delete_all_objects() ->
+  dets:delete_all_objects(?MODULE).
+
+table_delete() ->
+  File = atom_to_list(?MODULE),
+  file:delete(File).

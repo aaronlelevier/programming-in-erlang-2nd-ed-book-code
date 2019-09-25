@@ -11,12 +11,11 @@ ERL = erl -boot start_clean
 # If the modules don't fit onto one line add a \ character
 # to the end of the line and continue on the next line
 # Edit the lines below
-MODS = ets_test dets_test
+MODS = ex2
 
 all: compile
-	${ERL} -pa '/Users/aaron/Documents/erlang/src/files' \
-		-s ex2 init \
-		-s ex2_test test
+	${ERL} -pa '/Users/aaron/Documents/erlang/src/storing_data' \
+		-s ex2 start
 
 compile: ${MODS:%=%.beam}
 

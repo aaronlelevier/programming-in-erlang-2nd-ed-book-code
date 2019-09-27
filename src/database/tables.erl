@@ -16,6 +16,8 @@
 
 -record(shop, {item, quantity, cost}).
 -record(cost, {name, price}).
+% example record for storing complex data types in `mnesia`
+-record(design, {id, plan}).
 
 %% put initial table data here so it's easier to see alongside the
 %% record field names
@@ -73,7 +75,7 @@ select_where() ->
   do(qlc:q([{X#shop.item, X#shop.quantity} ||
     X <- mnesia:table(shop),
     X#shop.quantity < 250
-    ])).
+  ])).
 
 select_join() ->
   do(qlc:q([{X#shop.item, Y#cost.price, X#shop.cost} ||
@@ -82,6 +84,73 @@ select_join() ->
     X#shop.item =:= Y#cost.name
   ])).
 
+%% add / update data
+
+upsert() ->
+  io:format("start with empty tables~n"),
+  mnesia:clear_table(shop),
+  log_shop_table_data(),
+
+  % add melon
+  write_row(#shop{item = melon, quantity = 10, cost = 2.0}),
+  log_shop_table_data(),
+
+  % add apples
+  write_row(#shop{item = apple, quantity = 20, cost = 0.5}),
+  log_shop_table_data(),
+
+  % update melon
+  % NOTE: must insert all fields, or else field value will be 'undefined`
+  write_row(#shop{item = melon, quantity = 1, cost = 2.1}),
+  log_shop_table_data().
+
+write_row(Row) ->
+  F = fun() -> mnesia:write(Row) end,
+  mnesia:transaction(F).
+
+log_table_data(Item) ->
+  Data = do(qlc:q([X || X <- mnesia:table(Item)])),
+  io:format("~p~n", [Data]).
+
+log_shop_table_data() ->
+  log_table_data(shop).
+
+%% deleting data
+%% NOTE: if `Oid` doesn't exist, no error is raised
+
+delete({_Table, _Id} = Oid) ->
+  log_shop_table_data(),
+
+  F = fun() -> mnesia:delete(Oid) end,
+  mnesia:transaction(F),
+
+  log_shop_table_data().
+
+% transaction examples
+% uses `mnesia:abort` w/i the `fun` to abort a transaction based
+% upon some condition
+aborting_a_transaction(Nwant) ->
+  reset_tables(),
+
+  % {orange, item, quantity, cost}
+  F = fun() -> mnesia:read({shop, orange}) end,
+  {atomic, [Orange]} = mnesia:transaction(F),
+  {shop, orange, Quantity, _Cost} = Orange,
+  100 = Quantity,
+
+  %% as a transaction, show that an abort works
+  F2 = fun() ->
+    if Nwant =< Quantity ->
+      Orange1 = Orange#shop{quantity = Quantity - Nwant},
+      mnesia:write(Orange1);
+      true ->
+        Reason = oranges,
+        % http://erlang.org/doc/man/mnesia.html#abort-1
+        mnesia:abort(Reason)
+    end
+       end,
+  mnesia:transaction(F2).
+
 %% helpers
 
 do_this_once() ->
@@ -89,9 +158,13 @@ do_this_once() ->
   mnesia:start(),
   mnesia:create_table(shop, [{attributes, record_info(fields, shop)}]),
   mnesia:create_table(cost, [{attributes, record_info(fields, cost)}]),
+  mnesia:create_table(design, [{attributes, record_info(fields, design)}]),
   mnesia:stop().
 
 do(Q) ->
+  % NOTE: `qlc:e` - evaluates a query handle and returns all
+  % answers in a list
+  % http://erlang.org/doc/man/qlc.html#e-1
   F = fun() -> qlc:e(Q) end,
   {atomic, Val} = mnesia:transaction(F),
   Val.
@@ -104,3 +177,34 @@ reset_tables() ->
       end,
   mnesia:transaction(F).
 
+insert_design_data() ->
+  io:format("initial 'design' table data~n"),
+  log_table_data(design),
+
+  D1 = #design{id = {joe, 1},
+    plan = {circle, 10}},
+  D2 = #design{id = fred,
+    plan = {rectangle, 10, 5}},
+  D3 = #design{id = {jane, {house, 23}},
+    plan = {house,
+      [{floor, 1,
+        [{doors, 3},
+          {windows, 12},
+          {rooms, 5}]},
+        {floor, 2,
+          [{doors, 2},
+            {rooms, 4},
+            {windows, 15}]}]}},
+  F = fun() ->
+    mnesia:write(D1),
+    mnesia:write(D2),
+    mnesia:write(D3)
+      end,
+  mnesia:transaction(F),
+
+  io:format("udpated 'design' table data~n"),
+  log_table_data(design).
+
+read_design(OId) ->
+  F = fun() -> mnesia:read({design, OId}) end,
+  mnesia:transaction(F).

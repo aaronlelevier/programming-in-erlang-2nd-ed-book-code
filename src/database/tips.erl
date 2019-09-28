@@ -146,3 +146,5 @@ combine_list_of_counts([H|T], M) ->
   {Key, Val} = H,
   Val2 = maps:get(Key, M, 0),
   combine_list_of_counts(T, M#{Key => Val + Val2}).
+
+%% TODO: do the same w/ `qlc:fold`

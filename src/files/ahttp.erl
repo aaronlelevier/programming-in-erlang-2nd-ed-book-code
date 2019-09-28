@@ -13,6 +13,7 @@
 -module(ahttp).
 -author("aaron lelevier").
 -desc("ahttp ~ aaron http - module w/ example code for making http requests").
+-compile(export_all).
 -export([start/0, sync/1, async/1, receiver/1]).
 
 

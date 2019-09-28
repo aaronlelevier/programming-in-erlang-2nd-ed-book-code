@@ -41,14 +41,14 @@ example_data() ->
 
 init() ->
   ok = mnesia:start(),
-  ok = try_insert_init_data(),
+  ok = try_insert_init_data(fun reset_tables/0),
   ok.
 
-try_insert_init_data() ->
-  try_insert_init_data(1).
+try_insert_init_data(Fun) ->
+  try_insert_init_data(Fun, 1).
 
-try_insert_init_data(Counter) ->
-  case reset_tables() of
+try_insert_init_data(Fun, Counter) ->
+  case Fun() of
     {atomic, ok} ->
       io:format("Tables populated~n"),
       io:format("~p~n", [select_all()]),
@@ -57,7 +57,7 @@ try_insert_init_data(Counter) ->
       io:format("Error:~p~n", [Error]),
       if Counter < 5 ->
         timer:sleep(500),
-        try_insert_init_data(Counter + 1);
+        try_insert_init_data(Fun, Counter + 1);
         true ->
           Error
       end

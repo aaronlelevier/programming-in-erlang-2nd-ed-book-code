@@ -69,7 +69,7 @@ create_tables() ->
 
   mnesia:create_table(user, [{attributes, record_info(fields, user)}]),
   mnesia:create_table(flag, [{attributes, record_info(fields, flag)}]),
-  mnesia:create_table(abuse, [{attributes, record_info(fields, abuse)}]),
+  mnesia:create_table(abuse, [{attributes, record_info(fields, abuse)}, {type, bag}]),
   mnesia:create_table(tip, [{attributes, record_info(fields, tip)}]),
   mnesia:create_table(tag, [{attributes, record_info(fields, tag)}]),
 
@@ -92,9 +92,9 @@ example_data() ->
   Flag1 = #flag{name = prohibited, color = red},
   Flag2 = #flag{name = spam, color = yellow},
   % abuse
-  Abuse1 = #abuse{user = User2, flag = Flag1},
-  Abuse2 = #abuse{user = User2, flag = Flag2},
-  Abuse3 = #abuse{user = User3, flag = Flag2},
+  Abuse1 = #abuse{user = User2#user.username, flag = Flag1#flag.name},
+  Abuse2 = #abuse{user = User2#user.username, flag = Flag2#flag.name},
+  Abuse3 = #abuse{user = User3#user.username, flag = Flag2#flag.name},
 
   [% user: username, email
     User1, User2, User3,
@@ -112,3 +112,37 @@ example_data() ->
 
 select_all(Table) ->
   tables:do(qlc:q([X || X <- mnesia:table(Table)])).
+
+select_abusive_users() ->
+  tables:do(qlc:q([
+    {U#user.username, U#user.email} ||
+    U <- mnesia:table(user),
+    A <- mnesia:table(abuse),
+    U#user.username =:= A#abuse.user])).
+
+count_abuses() ->
+  L = tables:do(qlc:q([
+    {A#abuse.user, 1} ||
+    A <- mnesia:table(abuse)
+  ])),
+  combine_list_of_counts(L).
+
+%% combine list of counts
+
+%% test case func
+combine_list_of_counts() ->
+  L = [{a, 1}, {b, 1}, {a, 1}, {b, 3}, {c,1}],
+  combine_list_of_counts(L).
+
+-spec combine_list_of_counts(L :: list()) -> #{any() => integer()}.
+
+%% func for general usage
+combine_list_of_counts(L) ->
+  combine_list_of_counts(L, #{}).
+
+%% func that does the actual work
+combine_list_of_counts([], M) -> M;
+combine_list_of_counts([H|T], M) ->
+  {Key, Val} = H,
+  Val2 = maps:get(Key, M, 0),
+  combine_list_of_counts(T, M#{Key => Val + Val2}).

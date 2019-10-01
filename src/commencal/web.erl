@@ -11,6 +11,10 @@
 -compile(export_all).
 -export([]).
 
+%% macros
+
+-define(DEBUG(X), io:format("MOD:~p LINE:~p ~p~n", [?MODULE, ?LINE, X])).
+
 init() -> ok.
 
 %% returns the initial page content that we're interested in
@@ -42,8 +46,26 @@ extract_title() ->
   StrT =  "</h3>",
   S = string_jersey_list_page_content(),
   [_|T] = string:split(S, StrH),
-  [H2|_] = string:split(T, StrT),
+  [H2|_T2] = string:split(T, StrT),
   H2.
+
+extract_titles() ->
+  S = string_jersey_list_page_content(),
+  extract_titles(S, []).
+
+extract_titles([], Acc) -> Acc;
+extract_titles(S, Acc) ->
+  StrH = "<h3 class=\"PBMainTxt\">",
+  StrT =  "</h3>",
+  [_|T] = string:split(S, StrH),
+  [H2|T2] = string:split(T, StrT),
+  ?DEBUG(H2),
+  case H2 of
+    [] ->
+      lists:reverse(Acc);
+    _ ->
+      extract_titles(T2, [H2|Acc])
+  end.
 
 acc_til_h3([Ha, Hb, Hc, Hd, He | T], Acc) ->
   case {Ha, Hb, Hc, Hd, He} of
@@ -54,6 +76,35 @@ acc_til_h3([Ha, Hb, Hc, Hd, He | T], Acc) ->
   end;
 acc_til_h3([], Acc) ->
   lists:reverse(Acc).
+
+%% extracts text by a start and end
+extract(Str, Start, End) ->
+  [_|T] = string:split(Str, Start),
+  [H2|_] = string:split(T, End),
+  H2.
+
+get_item() ->
+  S = string_jersey_list_page_content(),
+  X = "<tr class=\"viewItemList\">",
+  [_|T] = string:split(S, X),
+  % this is the DOM for the 1st item, but each item is a table, w/ a nested table inside
+  % that doesn't have much, so capturing the 1st closed table gets all DOM we're interested in
+  [H2|_] = string:split(T, "</table>"),
+  Price = get_price(H2),
+  Title = get_title(H2),
+  {{price, Price}, {title, Title}}.
+
+%%-> "$ 99.90"
+get_price(H2) ->
+  Start = "<span class=\"PBSalesPrice\">",
+  End = "</span>",
+  extract(H2, Start, End).
+
+%%-> "FOX FLEXAIR DELTA LONG SLEEVE JERSEY OPEN ORANGE 2019"
+get_title(H2) ->
+  Start2 = "<h3 class=\"PBMainTxt\">",
+  End2 = "</h3>",
+  extract(H2, Start2, End2).
 
 %% Jersey data
 %% title: FOX FLEXAIR DELTA LONG SLEEVE JERSEY OPEN ORANGE 2019

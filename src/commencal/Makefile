@@ -11,14 +11,15 @@ ERL = erl -boot start_clean
 # If the modules don't fit onto one line add a \ character
 # to the end of the line and continue on the next line
 # Edit the lines below
-MODS = web
+MODS = web item
 
 all: compile
 	@erl \
 		-pa '/Users/aaron/Documents/erlang/book-code/src/files' \
 		-pa '/Users/aaron/Documents/erlang/book-code/src/commencal' \
 		-s ahttp start \
-		-s web init
+		-s web init \
+		-s item start
 
 compile: ${MODS:%=%.beam}
 

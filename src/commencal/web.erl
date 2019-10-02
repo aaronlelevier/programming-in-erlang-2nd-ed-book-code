@@ -168,11 +168,32 @@ string_jersey_detail_page_content() ->
 get_item_name(S) ->
   extract(S, "<h1 class=\"PBMainTxt PBItemTitle\">", "</h1>").
 
+log_get_item_price(S) ->
+  {SalesPrice, StrikePrice} = get_prices(S),
+  ?DEBUG({StrikePrice, SalesPrice}).
+
+get_prices(S) ->
+  SalesPrice = extract(S, "<span class=\"PBSalesPrice\">", "</span>"),
+  StrikePrice = get_value(extract(S, "<div class=\"PBStrike\">", "</div>")),
+  {SalesPrice, StrikePrice}.
+
 get_item_price(S) ->
-  extract(S, "<span class=\"PBSalesPrice\">", "</span>").
+  {SalesPrice, StrikePrice} = get_prices(S),
+  case StrikePrice of
+    undefined ->
+      SalesPrice;
+    _ ->
+      StrikePrice
+  end.
 
 get_item_sale_price(S) ->
-  get_value(extract(S, "<div class=\"PBStrike\">", "</div>")).
+  {SalesPrice, StrikePrice} = get_prices(S),
+    case StrikePrice of
+      undefined ->
+        undefined;
+    _ ->
+      SalesPrice
+  end.
 
 %% returns str %
 get_item_discount(S) ->

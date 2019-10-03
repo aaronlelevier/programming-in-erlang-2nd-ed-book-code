@@ -27,7 +27,7 @@ jersey_list_page_content() ->
 
 %% get-or-fetch helper - gets a local file if present or fetches it
 get_or_fetch(Url, Filename) ->
-  case file:read_file(Filename) of
+  case file:read_file(string:concat(?HTML_DIR, Filename)) of
     {error, enoent} ->
       {ok, Response} = httpc:request(Url),
       Bin = ahttp:response_to_binary(Response),
@@ -172,6 +172,9 @@ concat([H | T], Acc) ->
 
 jersey_detail_page_content() ->
   Href = get_item_href(),
+  jersey_detail_page_content(Href).
+
+jersey_detail_page_content(Href) ->
   Url = deeplink(Href),
   Filename = href_to_filename(Href),
   get_or_fetch(Url, Filename).

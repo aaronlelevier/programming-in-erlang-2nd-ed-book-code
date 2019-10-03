@@ -92,6 +92,26 @@ extract(Str, Start, End) ->
   [H2 | _] = string:split(T, End),
   H2.
 
+%% returns a list of hrefs for the detail page of each jersey
+extract_all_jersey_detail_hrefs() ->
+  S = string_jersey_list_page_content(),
+  Start = "<a  href=\"",
+  End = "\" title=",
+  extract_all(S, Start, End).
+
+extract_all(Str, Start, End) ->
+  extract_all(Str, Start, End, []).
+
+extract_all(Str, Start, End, Acc) ->
+  [_ | T] = string:split(Str, Start),
+  [H2 |T2] = string:split(T, End),
+  case H2 of
+    [] ->
+      lists:reverse(Acc);
+    _ ->
+    extract_all(T2, Start, End, [H2|Acc])
+  end.
+
 get_item() ->
   S = string_jersey_list_page_content(),
   X = "<tr class=\"viewItemList\">",

@@ -11,7 +11,7 @@ ERL = erl -boot start_clean
 # If the modules don't fit onto one line add a \ character
 # to the end of the line and continue on the next line
 # Edit the lines below
-MODS = web item comb
+MODS = web item comb db
 
 all: compile
 	@erl \
@@ -20,7 +20,8 @@ all: compile
 		-s ahttp start \
 		-s web init \
 		-s comb init \
-		-s item start
+		-s item start \
+		-s db init
 
 compile: ${MODS:%=%.beam}
 

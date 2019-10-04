@@ -11,18 +11,12 @@
 -compile(export_all).
 -export([]).
 -include("macros.hrl").
-
-%% records
-
--record(item, {name, price, sale_price, discount, brand, image_url,
-  sizes}).
+-include("records.hrl").
 
 % placeholder `start` for Makefile
 start() -> ok.
 
-init() ->
-  S = web:string_jersey_detail_page_content(),
-  init(S).
+init() -> ok.
 
 init(S) ->
   #item{

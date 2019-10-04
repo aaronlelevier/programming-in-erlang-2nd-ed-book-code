@@ -16,7 +16,7 @@
 init() -> ok.
 
 %% main loop
-start() ->
+fetch_and_insert() ->
   Pid = spawn(fun() -> master() end),
   [spawn(fun() -> worker(Pid, Href) end) ||
     Href <- web:extract_all_jersey_detail_hrefs()],
@@ -27,6 +27,8 @@ master() ->
   receive
     Msg ->
       ?DEBUG(Msg),
+      {_Pid, _Href, Item} = Msg,
+      db:insert(Item),
       master()
   after 2000 ->
     ?DEBUG("master timeout~n")

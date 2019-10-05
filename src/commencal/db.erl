@@ -47,6 +47,16 @@ select_by_size(Size) ->
     lists:member(BinSize, X#item.sizes) =:= true]
   )).
 
+-spec select_first() -> tuple().
+%% returns the 1st record from the "item" table
+%% TODO: not sure how to make work on diff Tables b/c of `X#item.name` and making "item" dynamic
+select_first() ->
+  F = fun() -> mnesia:first(item) end,
+  {atomic, Key} = mnesia:transaction(F),
+  [H|_] = do(qlc:q([X || X <- mnesia:table(item),
+    X#item.name =:= Key])),
+  H.
+
 %% helpers
 
 do(Q) ->

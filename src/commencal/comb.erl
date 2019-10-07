@@ -42,3 +42,16 @@ worker(MasterPid, Href) ->
   % record
   Record = item:init(S),
   MasterPid ! {self(), Href, Record}.
+
+
+% write terms to a file and read from that file
+
+write_term() ->
+  Filename = "/Users/aaron/Documents/erlang/jersey/myrelease/terms",
+  Term = api:item_to_list(),
+  lib_misc:dump(Filename, Term).
+
+write_terms(Filename, List) ->
+    Format = fun(Term) -> io_lib:format("~tp.~n", [Term]) end,
+    Text = lists:map(Format, List),
+    file:write_file(Filename, Text).

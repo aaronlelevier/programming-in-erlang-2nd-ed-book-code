@@ -10,7 +10,7 @@
 -author("aaron lelevier").
 -compile(export_all).
 -export([]).
--import(server1, [rpc/2]).
+-import(server2, [rpc/2]).
 
 init0() -> ok.
 

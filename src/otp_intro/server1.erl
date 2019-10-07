@@ -2,7 +2,8 @@
 %%% @author aaron lelevier
 %%% @copyright (C) 2019, <COMPANY>
 %%% @doc
-%%%
+%%% The most basic client-server example
+%%% client defines callbacks for the server to run
 %%% @end
 %%% Created : 07. Oct 2019 5:36 AM
 %%%-------------------------------------------------------------------

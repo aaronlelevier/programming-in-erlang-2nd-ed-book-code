@@ -6,7 +6,7 @@
 %%% @end
 %%% Created : 07. Oct 2019 5:47 AM
 %%%-------------------------------------------------------------------
--module(name_server).
+-module(name_server1).
 -author("aaron lelevier").
 -compile(export_all).
 -export([]).

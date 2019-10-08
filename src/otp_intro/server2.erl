@@ -22,8 +22,7 @@ rpc(Name, Request) ->
   receive
     {Name, crash} -> exit(rpc);
     {Name, ok, Response} -> Response;
-    Other ->
-      {other, Other}
+    Other -> {other, Other}
   end.
 
 loop(Name, Mod, OldState) ->

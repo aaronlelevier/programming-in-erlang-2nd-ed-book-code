@@ -8,7 +8,9 @@
 
 ERL = erl -boot start_clean
 
-MODS = server1 server2 server3 name_server name_server1 new_name_server
+MODS = server1 server2 server3 server4 \
+	name_server name_server1 new_name_server
+
 
 all: compile
 	@erl \
@@ -17,6 +19,7 @@ all: compile
 		-s server1 init \
 		-s server2 init \
 		-s server3 init \
+		-s server4 init \
 		-s name_server1 init0 \
 		-s new_name_server init0
 

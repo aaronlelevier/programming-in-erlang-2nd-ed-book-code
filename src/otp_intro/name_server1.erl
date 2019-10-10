@@ -10,7 +10,10 @@
 -author("aaron lelevier").
 -compile(export_all).
 -export([]).
--import(server3, [rpc/2]).
+%% when doing this pattern, imported functions aren't resolved...
+%% ex: `rpc` below
+-include_lib("macros.hrl").
+-import(?SERVER, [rpc/2]).
 
 init0() -> ok.
 

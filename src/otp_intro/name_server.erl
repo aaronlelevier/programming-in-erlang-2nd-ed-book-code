@@ -10,7 +10,8 @@
 -author("aaron lelevier").
 -compile(export_all).
 -export([]).
--import(server3, [rpc/2]).
+-include_lib("macros.hrl").
+-import(?SERVER, [rpc/2]).
 
 init0() -> ok.
 

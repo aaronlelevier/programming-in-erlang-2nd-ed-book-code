@@ -9,28 +9,26 @@
 -module(my_bank).
 -author("aaron lelevier").
 -compile(export_all).
-
 %% used by compiler to generate warnings if not all callbacks are defined
 -behaviour(gen_server).
 
+%% macros
+
 -define(SERVER, my_bank).
 
-%% open the bank
-start() -> gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
+%%%%%% interface functions %%%%%%
 
-%% close the bank
-stop() -> gen_server:call(?MODULE, stop).
-
-%% create a new account
 new_account(Who) -> gen_server:call(?MODULE, {new, Who}).
 deposit(Who, Amount) -> gen_server:call(?MODULE, {add, Who, Amount}).
 withdraw(Who, Amount) -> gen_server:call(?MODULE, {remove, Who, Amount}).
+stop() -> gen_server:call(?MODULE, stop).
 
-%% gen_server_template.mini
+%%%%%% gen_server callback functions %%%%%%
 
-%% TODO: is this needed?
-%%start_link() -> gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
+%% starts the gen_server
+start_link() -> gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
 
+%% first call made by the gen_server
 init([]) -> {ok, ets:new(?MODULE, [])}.
 
 handle_call({new, Who}, _From, Tab) ->

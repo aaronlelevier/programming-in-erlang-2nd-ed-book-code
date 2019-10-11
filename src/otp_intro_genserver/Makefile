@@ -14,7 +14,7 @@ MODS = my_bank
 all: compile
 	@erl \
 		-pa '/Users/aaron/Documents/erlang/book-code/src/otp_intro_genserver' \
-		-s my_bank start
+		-s my_bank start_link
 
 compile: ${MODS:%=%.beam}
 

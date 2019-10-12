@@ -22,6 +22,18 @@
 -include_lib("../otp_intro/macros.hrl").
 
 %%%===================================================================
+%%% job_queue
+%%%===================================================================
+
+-record(job_queue, {job_num, backlog, in_progress, done}).
+
+init_job_queue() ->
+    #job_queue{job_num = 0, backlog = queue:new(),
+        in_progress = queue:new(), done = queue:new()}.
+
+next_job_num(JobQueue) -> JobQueue#job_queue.job_num + 1.
+
+%%%===================================================================
 %%% API
 %%%===================================================================
 
@@ -32,6 +44,10 @@
 %% @spec start_link() -> {ok, Pid} | ignore | {error, Error}
 %% @end
 %%--------------------------------------------------------------------
+
+%% placeholder init
+init0() -> ok.
+
 start_link() ->
     {ok, _Pid} = gen_server:start_link({local, ?SERVER}, ?MODULE, [], []),
     true.
@@ -54,7 +70,7 @@ add_job(F) -> gen_server:call(?MODULE, {add_job, F}).
 %% @end
 %%--------------------------------------------------------------------
 init([]) ->
-    {ok, queue:new()}.
+    {ok, init_job_queue()}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -72,20 +88,12 @@ init([]) ->
 %%--------------------------------------------------------------------
 %% adds a Job to the Queue. If the Queue is empty, start with
 %% JobNumber 1, else increment the Job number
-%% TODO: may need to change, for example if all jobs are done,
-%% TODO: we won't know the last JobNum from inspecting the Queue
-handle_call({add_job, F}, _From, Q) ->
-    Value = case queue:peek_r(Q) of
-        empty ->
-            NewJobNum = 1,
-            Q1 = queue:in({1, F}, Q),
-            NewJobNum;
-        {value, {JobNum, _F}} ->
-            NewJobNum = JobNum+1,
-            Q1 = queue:in({NewJobNum, F}, Q),
-            NewJobNum
-    end,
-    {reply, Value, Q1}.
+handle_call({add_job, F}, _From, JobQueue) ->
+    Backlog = JobQueue#job_queue.backlog,
+    NewJobNum = next_job_num(JobQueue),
+    NewBacklog = queue:in({NewJobNum, F}, Backlog),
+    NewJobQueue = JobQueue#job_queue{job_num = NewJobNum, backlog = NewBacklog},
+    {reply, NewJobNum, NewJobQueue}.
 
 %%--------------------------------------------------------------------
 %% @private

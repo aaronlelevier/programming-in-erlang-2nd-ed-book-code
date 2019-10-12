@@ -8,13 +8,13 @@
 
 ERL = erl -boot start_clean
 
-MODS = my_bank
+MODS = job_centre
 
 
 all: compile
 	@erl \
 		-pa '/Users/aaron/Documents/erlang/book-code/src/otp_intro_genserver' \
-		-s my_bank start_link
+		-s job_centre start_link
 
 compile: ${MODS:%=%.beam}
 

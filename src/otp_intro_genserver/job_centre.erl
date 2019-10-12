@@ -16,7 +16,7 @@
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
-	 terminate/2, code_change/3]).
+  terminate/2, code_change/3]).
 
 -define(SERVER, ?MODULE).
 -include_lib("../otp_intro/macros.hrl").
@@ -28,8 +28,8 @@
 -record(job_queue, {job_num, backlog, in_progress, done}).
 
 init_job_queue() ->
-    #job_queue{job_num = 0, backlog = queue:new(),
-        in_progress = queue:new(), done = queue:new()}.
+  #job_queue{job_num = 0, backlog = queue:new(),
+    in_progress = queue:new(), done = queue:new()}.
 
 next_job_num(JobQueue) -> JobQueue#job_queue.job_num + 1.
 
@@ -49,10 +49,14 @@ next_job_num(JobQueue) -> JobQueue#job_queue.job_num + 1.
 init0() -> ok.
 
 start_link() ->
-    {ok, _Pid} = gen_server:start_link({local, ?SERVER}, ?MODULE, [], []),
-    true.
+  {ok, _Pid} = gen_server:start_link({local, ?SERVER}, ?MODULE, [], []),
+  true.
 
 add_job(F) -> gen_server:call(?MODULE, {add_job, F}).
+
+work_wanted() -> gen_server:call(?MODULE, work_wanted).
+
+statistics() -> gen_server:call(?MODULE, statistics).
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -70,7 +74,7 @@ add_job(F) -> gen_server:call(?MODULE, {add_job, F}).
 %% @end
 %%--------------------------------------------------------------------
 init([]) ->
-    {ok, init_job_queue()}.
+  {ok, init_job_queue()}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -89,11 +93,33 @@ init([]) ->
 %% adds a Job to the Queue. If the Queue is empty, start with
 %% JobNumber 1, else increment the Job number
 handle_call({add_job, F}, _From, JobQueue) ->
-    Backlog = JobQueue#job_queue.backlog,
-    NewJobNum = next_job_num(JobQueue),
-    NewBacklog = queue:in({NewJobNum, F}, Backlog),
-    NewJobQueue = JobQueue#job_queue{job_num = NewJobNum, backlog = NewBacklog},
-    {reply, NewJobNum, NewJobQueue}.
+  Backlog = JobQueue#job_queue.backlog,
+  NewJobNum = next_job_num(JobQueue),
+  NewBacklog = queue:in({NewJobNum, F}, Backlog),
+  NewJobQueue = JobQueue#job_queue{job_num = NewJobNum, backlog = NewBacklog},
+  Reply = NewJobNum,
+  {reply, Reply, NewJobQueue};
+handle_call(work_wanted, _From, JobQueue) ->
+  {Reply, NewJobQueue2} = case queue:out(JobQueue#job_queue.backlog) of
+                            {empty, _Q} ->
+                              {no, JobQueue};
+                            {{value, Item}, NewBackLog} ->
+                              InProgress = JobQueue#job_queue.in_progress,
+                              NewInProgress = queue:in(Item, InProgress),
+                              NewJobQueue = JobQueue#job_queue{
+                                backlog = NewBackLog, in_progress = NewInProgress},
+                              {Item, NewJobQueue}
+                          end,
+  {reply, Reply, NewJobQueue2};
+handle_call(statistics, _From, JobQueue) ->
+  Reply = {
+    {job_num, JobQueue#job_queue.job_num},
+    {backlog, JobQueue#job_queue.backlog},
+    {in_progress, JobQueue#job_queue.in_progress},
+    {done, JobQueue#job_queue.done}
+  },
+  {reply, Reply, JobQueue}.
+
 
 %%--------------------------------------------------------------------
 %% @private
@@ -106,7 +132,7 @@ handle_call({add_job, F}, _From, JobQueue) ->
 %% @end
 %%--------------------------------------------------------------------
 handle_cast(_Msg, State) ->
-    {noreply, State}.
+  {noreply, State}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -119,7 +145,7 @@ handle_cast(_Msg, State) ->
 %% @end
 %%--------------------------------------------------------------------
 handle_info(_Info, State) ->
-    {noreply, State}.
+  {noreply, State}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -133,7 +159,7 @@ handle_info(_Info, State) ->
 %% @end
 %%--------------------------------------------------------------------
 terminate(_Reason, _State) ->
-    ok.
+  ok.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -144,7 +170,7 @@ terminate(_Reason, _State) ->
 %% @end
 %%--------------------------------------------------------------------
 code_change(_OldVsn, State, _Extra) ->
-    {ok, State}.
+  {ok, State}.
 
 %%%===================================================================
 %%% Internal functions

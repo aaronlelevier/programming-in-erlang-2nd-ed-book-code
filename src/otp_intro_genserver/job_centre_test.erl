@@ -16,4 +16,15 @@
 test() ->
   true = job_centre:start_link(),
   F1 = fun() -> 1 + 1 end,
-  1 = job_centre:add_job(F1).
+  1 = job_centre:add_job(F1),
+  ?DEBUG({statistics, job_centre:statistics()}),
+
+  Ret0 = job_centre:work_wanted(),
+  ?DEBUG({ret, Ret0}),
+  ?DEBUG({statistics, job_centre:statistics()}),
+
+  Ret = job_centre:work_wanted(),
+  ?DEBUG({ret, Ret}),
+  ?DEBUG({statistics, job_centre:statistics()}),
+
+  Ret.

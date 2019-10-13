@@ -31,7 +31,7 @@ init_job_queue() ->
   #job_queue{job_num = 0, backlog = queue:new(),
     in_progress = queue:new(), done = queue:new()}.
 
-next_job_num(JobQueue) -> JobQueue#job_queue.job_num + 1.
+new_job_num(JobQueue) -> JobQueue#job_queue.job_num + 1.
 
 %%%===================================================================
 %%% API
@@ -52,10 +52,16 @@ start_link() ->
   {ok, _Pid} = gen_server:start_link({local, ?SERVER}, ?MODULE, [], []),
   true.
 
+%% adds a new job to the queue
 add_job(F) -> gen_server:call(?MODULE, {add_job, F}).
 
+%% called when a worker starts work on a job
 work_wanted() -> gen_server:call(?MODULE, work_wanted).
 
+%% called when a worker finishes a job
+job_done(JobNum) -> gen_server:call(?MODULE, {job_done, JobNum}).
+
+%% get statistics about the job queues
 statistics() -> gen_server:call(?MODULE, statistics).
 
 %%%===================================================================
@@ -94,7 +100,7 @@ init([]) ->
 %% JobNumber 1, else increment the Job number
 handle_call({add_job, F}, _From, JobQueue) ->
   Backlog = JobQueue#job_queue.backlog,
-  NewJobNum = next_job_num(JobQueue),
+  NewJobNum = new_job_num(JobQueue),
   NewBacklog = queue:in({NewJobNum, F}, Backlog),
   NewJobQueue = JobQueue#job_queue{job_num = NewJobNum, backlog = NewBacklog},
   Reply = NewJobNum,
@@ -111,6 +117,8 @@ handle_call(work_wanted, _From, JobQueue) ->
                               {Item, NewJobQueue}
                           end,
   {reply, Reply, NewJobQueue2};
+handle_call({job_done, JobNum}, _From, JobQueue) ->
+  {reply, JobNum, JobQueue};
 handle_call(statistics, _From, JobQueue) ->
   Reply = {
     {job_num, JobQueue#job_queue.job_num},

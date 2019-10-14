@@ -8,14 +8,14 @@
 
 ERL = erl -boot start_clean
 
-MODS = job_centre job_centre_test
+MODS = job_queue job_queue_test
 
 
 all: compile
 	@erl \
 		-pa '/Users/aaron/Documents/erlang/book-code/src/otp_intro_genserver' \
-		-s job_centre init0 \
-		-s job_centre_test test
+		-s job_queue init0 \
+		-s job_queue_test test
 
 compile: ${MODS:%=%.beam}
 

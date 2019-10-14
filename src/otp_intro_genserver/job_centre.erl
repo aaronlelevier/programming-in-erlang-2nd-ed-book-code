@@ -28,8 +28,12 @@
 -record(job_queue, {job_num, backlog, in_progress, done}).
 
 init_job_queue() ->
-  #job_queue{job_num = 0, backlog = queue:new(),
-    in_progress = queue:new(), done = queue:new()}.
+  #job_queue{
+    job_num = 0,
+    backlog = queue:new(),
+    in_progress = ets:new(in_progress, []),
+    done = ets:new(done, [])
+  }.
 
 new_job_num(JobQueue) -> JobQueue#job_queue.job_num + 1.
 
@@ -103,8 +107,7 @@ handle_call({add_job, F}, _From, JobQueue) ->
   NewJobNum = new_job_num(JobQueue),
   NewBacklog = queue:in({NewJobNum, F}, Backlog),
   NewJobQueue = JobQueue#job_queue{job_num = NewJobNum, backlog = NewBacklog},
-  Reply = NewJobNum,
-  {reply, Reply, NewJobQueue};
+  {reply, NewJobNum, NewJobQueue};
 handle_call(work_wanted, _From, JobQueue) ->
   {Reply, NewJobQueue2} = case queue:out(JobQueue#job_queue.backlog) of
                             {empty, _Q} ->

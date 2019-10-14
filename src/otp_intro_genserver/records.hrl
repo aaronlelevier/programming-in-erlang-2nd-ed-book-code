@@ -1,0 +1,1 @@
+-record(job_queue, {job_num, backlog, in_progress, done}).

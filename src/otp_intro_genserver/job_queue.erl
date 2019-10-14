@@ -47,23 +47,44 @@ work_wanted(JobQueue) ->
       {{JobNum, Job}, NewJobQueue}
   end.
 
+%% moves a Job from "in-progress" to "done" ets table
+job_done(JobNum, JobQueue) ->
+  ets:delete(JobQueue#job_queue.in_progress, JobNum),
+  ets:insert(JobQueue#job_queue.done, {JobNum}).
+
+%% displays statistics about the JobQueue
+statistics(JobQueue) -> {
+  {job_num, JobQueue#job_queue.job_num},
+  {backlog, JobQueue#job_queue.backlog},
+  {in_progress, ets:match(JobQueue#job_queue.in_progress, '$1')},
+  {done, ets:match(JobQueue#job_queue.done, '$1')}
+}.
+
 %% public API - helpers
 
 %% looks up a job in the relative table
 lookup(TableName, JobNum, JobQueue) ->
-  case TableName =:= in_progress of
-    true ->
-      [{JobNum, Job}] = ets:lookup(JobQueue#job_queue.in_progress, JobNum),
-      {JobNum, Job};
+  case TableName of
+    in_progress ->
+      lookup1(JobQueue#job_queue.in_progress, JobNum);
+    done ->
+      lookup1(JobQueue#job_queue.done, JobNum);
     _ ->
       void
   end.
 
+%% coerce ets lookup return value
+lookup1(Tab, Key) ->
+  case ets:lookup(Tab, Key) of
+    [Item] -> Item;
+    [] -> no
+  end.
+
+
 %% returns bool if there's jobs in the backlog
 has_jobs(JobQueue) ->
-  % TODO: change to queue:peek?
-  case queue:out(JobQueue#job_queue.backlog) of
-    {empty, _} ->
+  case queue:peek(JobQueue#job_queue.backlog) of
+    empty ->
       false;
     _ ->
       true

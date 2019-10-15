@@ -19,13 +19,11 @@
   terminate/2, code_change/3]).
 
 -define(SERVER, ?MODULE).
--include_lib("../otp_intro/macros.hrl").
-
+-include_lib("../macros.hrl").
+-include_lib("records.hrl").
 %%%===================================================================
 %%% job_queue
 %%%===================================================================
-
--record(job_queue, {job_num, backlog, in_progress, done}).
 
 init_job_queue() ->
   #job_queue{
@@ -103,32 +101,16 @@ init([]) ->
 %% adds a Job to the Queue. If the Queue is empty, start with
 %% JobNumber 1, else increment the Job number
 handle_call({add_job, F}, _From, JobQueue) ->
-  Backlog = JobQueue#job_queue.backlog,
-  NewJobNum = new_job_num(JobQueue),
-  NewBacklog = queue:in({NewJobNum, F}, Backlog),
-  NewJobQueue = JobQueue#job_queue{job_num = NewJobNum, backlog = NewBacklog},
+  {NewJobNum, NewJobQueue} = job_queue:add_job(JobQueue, F),
   {reply, NewJobNum, NewJobQueue};
 handle_call(work_wanted, _From, JobQueue) ->
-  {Reply, NewJobQueue2} = case queue:out(JobQueue#job_queue.backlog) of
-                            {empty, _Q} ->
-                              {no, JobQueue};
-                            {{value, Item}, NewBackLog} ->
-                              InProgress = JobQueue#job_queue.in_progress,
-                              NewInProgress = queue:in(Item, InProgress),
-                              NewJobQueue = JobQueue#job_queue{
-                                backlog = NewBackLog, in_progress = NewInProgress},
-                              {Item, NewJobQueue}
-                          end,
-  {reply, Reply, NewJobQueue2};
+  {Reply, NewJobQueue} = job_queue:work_wanted(JobQueue),
+  {reply, Reply, NewJobQueue};
 handle_call({job_done, JobNum}, _From, JobQueue) ->
-  {reply, JobNum, JobQueue};
+  Reply = job_queue:job_done(JobNum, JobQueue),
+  {reply, Reply, JobQueue};
 handle_call(statistics, _From, JobQueue) ->
-  Reply = {
-    {job_num, JobQueue#job_queue.job_num},
-    {backlog, JobQueue#job_queue.backlog},
-    {in_progress, JobQueue#job_queue.in_progress},
-    {done, JobQueue#job_queue.done}
-  },
+  Reply = job_queue:statistics(JobQueue),
   {reply, Reply, JobQueue}.
 
 

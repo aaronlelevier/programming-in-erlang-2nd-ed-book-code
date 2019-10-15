@@ -10,21 +10,16 @@
 -author("aaron lelevier").
 -compile(export_all).
 -export([]).
--include_lib("../otp_intro/macros.hrl").
+-include_lib("../macros.hrl").
 
 % placeholder `init` for Makefile
 test() ->
   true = job_centre:start_link(),
   F1 = fun() -> 1 + 1 end,
   1 = job_centre:add_job(F1),
-  ?DEBUG({statistics, job_centre:statistics()}),
 
-  Ret0 = job_centre:work_wanted(),
-  ?DEBUG({ret, Ret0}),
-  ?DEBUG({statistics, job_centre:statistics()}),
+  {1, F1} = job_centre:work_wanted(),
 
-  Ret = job_centre:work_wanted(),
-  ?DEBUG({ret, Ret}),
-  ?DEBUG({statistics, job_centre:statistics()}),
+  no = job_centre:work_wanted(),
 
-  Ret.
+  ok.

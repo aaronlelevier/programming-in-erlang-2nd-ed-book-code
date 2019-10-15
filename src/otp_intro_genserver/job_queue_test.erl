@@ -39,7 +39,7 @@ test_add_job_and_the_queue_has_jobs() ->
 
 test_work_wanted_ret_no_if_no_jobs_in_queue() ->
   JobQueue = job_queue:init(),
-  no = job_queue:work_wanted(JobQueue),
+  {no, JobQueue} = job_queue:work_wanted(JobQueue),
   ok.
 
 test_work_wanted_ret_job_if_job_in_queue() ->
@@ -95,16 +95,12 @@ test_statistics_ret_tagged_tuple_with_all_data() ->
 
   Ret = job_queue:statistics(JobQueue5),
 
-  ?DEBUG(Ret),
-
   RawRet = {
     {job_num, 3},
     {backlog, JobQueue5#job_queue.backlog},
     {in_progress, [[{2, Job}]]},
     {done, [[{1}]]}
   },
-  ?DEBUG(RawRet),
-
   Ret = RawRet,
 
   ok.

@@ -37,7 +37,7 @@ add_job(JobQueue, Job) ->
 work_wanted(JobQueue) ->
   case has_jobs(JobQueue) of
     false ->
-      no;
+      {no, JobQueue};
     true ->
       % job is removed from backlog
       {{value, {JobNum, Job}}, NewBackLog} = queue:out(JobQueue#job_queue.backlog),

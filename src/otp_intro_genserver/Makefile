@@ -13,11 +13,13 @@ MODS = job_queue job_queue_test job_centre job_centre_test
 all: compile
 	@erl \
 		-pa '/Users/aaron/Documents/erlang/book-code/src/otp_intro_genserver' \
+		-pa '/Users/aaron/Documents/erlang/book-code/src' \
 		-s job_centre start_link
 
 test: compile
 	@erl \
 	-pa '/Users/aaron/Documents/erlang/book-code/src/otp_intro_genserver' \
+	-pa '/Users/aaron/Documents/erlang/book-code/src' \
 	-s job_queue_test test \
 	-s job_centre_test test
 

@@ -21,6 +21,8 @@ test() ->
   ok = test_lookup_job_that_does_not_exist_ret_no(),
   ok = test_job_done_transitions_through_each_queue_and_table(),
   ok = test_statistics_ret_tagged_tuple_with_all_data(),
+  ok = test_do_work_success_ret_value_of_f(),
+  ok = test_do_work_fail_ret_reason(),
   ok.
 
 test_add_job_and_the_queue_has_jobs() ->
@@ -103,4 +105,20 @@ test_statistics_ret_tagged_tuple_with_all_data() ->
   },
   Ret = RawRet,
 
+  ok.
+
+test_do_work_success_ret_value_of_f() ->
+  JobNum = 1,
+  F = fun() -> 1 + 1 end,
+  Result = job_queue:do_work({JobNum, F}),
+  ?DEBUG(Result),
+  {JobNum, success, 2} = Result,
+  ok.
+
+test_do_work_fail_ret_reason() ->
+  JobNum = 1,
+  F = fun() -> 1 / hi end,
+  Result = job_queue:do_work({JobNum, F}),
+  ?DEBUG(Result),
+  {JobNum, fail, _Why} = Result,
   ok.

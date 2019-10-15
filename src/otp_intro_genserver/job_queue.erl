@@ -11,6 +11,7 @@
 -compile(export_all).
 -export([]).
 -include("records.hrl").
+-include("../macros.hrl").
 
 % placeholder `init` for Makefile
 init0() -> ok.
@@ -92,3 +93,29 @@ has_jobs(JobQueue) ->
 
 %% returns the next job-number to use
 new_job_num(JobQueue) -> JobQueue#job_queue.job_num + 1.
+
+%% manager / worker
+
+do_work({JobNum, F}) ->
+  manager_loop(JobNum, F).
+
+manager_loop(JobNum, F) ->
+  Pid = spawn(fun() -> worker_loop() end),
+  Pid ! {self(), F},
+  receive
+    {Pid, Result, Value} ->
+      % return value w/ result and JobNum
+      {JobNum, Result, Value}
+  end.
+
+worker_loop() ->
+  receive
+    {From, F} ->
+      try F() of
+        Value ->
+          From ! {self(), success, Value}
+      catch
+        _:Why ->
+          From ! {self(), fail, Why}
+      end
+  end.

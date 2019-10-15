@@ -1,5 +1,1 @@
--ifdef(debug_flag).
 -define(DEBUG(X), io:format("MOD:~p LINE:~p ~p~n", [?MODULE, ?LINE, X])).
--else
--define(DEBUG(X), void).
--endif.

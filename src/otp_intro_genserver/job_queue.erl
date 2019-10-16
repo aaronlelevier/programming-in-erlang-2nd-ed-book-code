@@ -99,6 +99,7 @@ new_job_num(JobQueue) -> JobQueue#job_queue.job_num + 1.
 do_work({JobNum, F}) ->
   manager_loop(JobNum, F).
 
+%% use `spawn_link` to get a message if the worker process dies
 manager_loop(JobNum, F) ->
   Pid = spawn(fun() -> worker_loop() end),
   Pid ! {self(), F},
@@ -106,6 +107,8 @@ manager_loop(JobNum, F) ->
     {Pid, Result, Value} ->
       % return value w/ result and JobNum
       {JobNum, Result, Value}
+  after 2000 ->
+    manager_timeout
   end.
 
 worker_loop() ->
@@ -114,8 +117,34 @@ worker_loop() ->
       try F() of
         Value ->
           From ! {self(), success, Value}
-      catch
-        _:Why ->
-          From ! {self(), fail, Why}
+      catch _:Why ->
+        From ! {self(), fail, Why}
       end
+  after 2000 ->
+    worker_timeout
+  end.
+
+%% ch-22 ex-3 have a worker loop, then kill it and job
+%% should go back to the job queue
+manager_loop3(JobQueue, F) ->
+  Pid = spawn_link(fun() -> worker_loop3() end),
+  Pid ! {self(), F},
+%%  exit(Pid, kill),
+  receive
+    {'EXIT', _Pid2, _Why} ->
+      add_job(JobQueue, F);
+    Other ->
+      {other, Other}
+  after 2000 ->
+    manager_loop3_timeout
+  end.
+
+worker_loop3() ->
+  receive
+    {From, F}=Msg ->
+      ?DEBUG(Msg),
+      _ = F(),
+      worker_loop3()
+  after 2000 ->
+    worker_loop3_timeout
   end.

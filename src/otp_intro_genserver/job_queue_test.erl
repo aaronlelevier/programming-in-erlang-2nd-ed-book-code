@@ -23,6 +23,7 @@ test() ->
   ok = test_statistics_ret_tagged_tuple_with_all_data(),
   ok = test_do_work_success_ret_value_of_f(),
   ok = test_do_work_fail_ret_reason(),
+  ok = test_job_goes_back_to_queue_if_worker_dies(),
   ok.
 
 test_add_job_and_the_queue_has_jobs() ->
@@ -121,4 +122,20 @@ test_do_work_fail_ret_reason() ->
   Result = job_queue:do_work({JobNum, F}),
   ?DEBUG(Result),
   {JobNum, fail, _Why} = Result,
+  ok.
+
+test_job_goes_back_to_queue_if_worker_dies() ->
+  JobQueue = job_queue:init(),
+  Job = fun() -> 1 / hi end,
+  {JobNum, JobQueue2} = job_queue:add_job(JobQueue, Job),
+  1 = JobNum,
+  {{JobNum, Job}, JobQueue3} = job_queue:work_wanted(JobQueue2),
+  false = job_queue:has_jobs(JobQueue3),
+
+  {JobNum4, JobQueue4} = job_queue:manager_loop3(JobQueue3, Job),
+
+  % new job number
+  2 = JobNum4,
+  % job back in queue, so job_queue has jobs again
+  true = job_queue:has_jobs(JobQueue4),
   ok.

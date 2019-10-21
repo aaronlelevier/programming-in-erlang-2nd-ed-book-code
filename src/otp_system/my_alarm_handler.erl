@@ -7,24 +7,31 @@
 %%%-------------------------------------------------------------------
 -module(my_alarm_handler).
 -author("aaron lelevier").
--behaviour(gen_server).
+-behaviour(gen_event).
 -include_lib("kernel/include/logger.hrl").
 -include_lib("../macros.hrl").
 
 %% gen_server callbacks
--export([start_link/0, init/1, handle_call/3, handle_cast/2, handle_info/2,
-	terminate/2, code_change/3]).
+-export([init0/0, init/1, handle_event/2, terminate/2, handle_call/2]).
 
-%% macros
--define(SERVER, ?MODULE).
+%% makefile placeholder
+init0() -> ok.
 
 %% gen_server behaviour
-start_link() -> gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
 init(Args) ->
-	?DEBUG({"init", args, Args}),
+	?DEBUG({"*** my_alarm_handler init", Args}),
 	{ok, 0}.
-handle_call(_Request, _From, State) -> {reply, Reply, State}.
-handle_cast(_Msg, State) -> {noreply, State}.
-handle_info(_Info, State) -> {noreply, State}.
-terminate(_Reason, _State) -> ok.
-code_change(_OldVsn, State, _Extra) -> {ok, State}.
+
+handle_event({set_alarm, tooHot}, N) ->
+	logger:error("*** tell the Engineer to turn on the fan"),
+	{ok, N+1};
+handle_event({clear_alarm, tooHot}, N) ->
+	logger:info("*** danger over, turn off the fan"),
+	{ok, N}.
+
+handle_call(_Request, N) ->
+	Reply = N,
+	{ok, Reply, N}.
+
+terminate(_Args, _State) ->
+	ok.

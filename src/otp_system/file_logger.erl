@@ -16,7 +16,7 @@
 -export([init/1, handle_event/2, terminate/2, handle_call/2]).
 
 %% tests
--export([file_logger_test/0]).
+-export([test/0]).
 
 %% gen_event callbacks
 -spec init(Args :: list()) -> {ok, State :: any()}.
@@ -39,7 +39,7 @@ terminate(_Args, Fd) ->
   file:close(Fd).
 
 %%tests
-file_logger_test() ->
+test() ->
   % starts Event Manager and registers it as Name "error_man"
   gen_event:start_link({local, error_man}),
   % `init`

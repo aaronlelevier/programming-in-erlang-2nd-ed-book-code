@@ -25,6 +25,9 @@ init(Args) ->
 handle_event({set_alarm, tooHot}, N) ->
 	logger:error("*** tell the Engineer to turn on the fan"),
 	{ok, N+1};
+handle_event({set_alarm, tooCold}, N) ->
+	logger:error("*** tell the Engineer to turn on the heat"),
+	{ok, N-1};
 handle_event({clear_alarm, tooHot}, N) ->
 	logger:info("*** danger over, turn off the fan"),
 	{ok, N}.
@@ -34,4 +37,5 @@ handle_call(_Request, N) ->
 	{ok, Reply, N}.
 
 terminate(_Args, _State) ->
+	?LOG_INFO("MOD:~p terminating", [?MODULE]),
 	ok.

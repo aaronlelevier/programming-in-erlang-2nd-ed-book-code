@@ -30,6 +30,15 @@ handle_event({new_product, {Name, _Inventory, _Price}=Product}, State) ->
   State1 = State#{ Name => Product},
   ?LOG_DEBUG("state1:~p", [State1]),
   {ok, State1};
+handle_event({inventory_change, {Name, NewInventory}}, State) ->
+  ?LOG_DEBUG("state:~p", [State]),
+  #{ Name := Product0} = State,
+  {Name, OldInventory, Price0} = Product0,
+  Product1 = {Name, NewInventory, Price0},
+  ?LOG_DEBUG("OldInventory:~p, NewInventory:~p", [OldInventory, NewInventory]),
+  State1 = State#{ Name => Product1},
+  ?LOG_DEBUG("state1:~p", [State1]),
+  {ok, State1};
 handle_event(Other, State) ->
   ?LOG_INFO("Other:~p", [Other]),
   {ok, State}.
@@ -46,15 +55,21 @@ terminate(_Args, State) ->
 new_product({_Name, _Inventory, _Price}=Product) ->
   gen_event:notify(product_handler, {new_product, Product}).
 
+inventory_change({Name, Inventory}) ->
+  gen_event:notify(product_handler, {inventory_change, {Name, Inventory}}).
+
 %% tests
 test() ->
   logger:set_primary_config(level, debug),
   gen_event:start_link({local, product_handler}),
   % add handler
   gen_event:add_handler(product_handler, ?MODULE, #{}),
-  % send event
+
+  % send events
   ok = new_product({black_forbike_jersey, 10, 39.00}),
   ok = new_product({black_forbike_pants, 10, 99.00}),
+  ok = inventory_change({black_forbike_jersey, 9}),
+
   % delete handler
   ok = gen_event:delete_handler(product_handler, ?MODULE, []).
 

@@ -9,7 +9,7 @@
 ERL = erl -boot start_clean
 
 MODS = event_handler motor_controller logger_api my_alarm_handler \
-	terminal_logger file_logger
+	terminal_logger file_logger product_handler
 
 all: compile
 	@erl \

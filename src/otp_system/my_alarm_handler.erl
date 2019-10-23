@@ -11,7 +11,7 @@
 -include_lib("kernel/include/logger.hrl").
 -include_lib("../macros.hrl").
 
-%% gen_server callbacks
+%% gen_event callbacks
 -export([init0/0, init/1, handle_event/2, terminate/2, handle_call/2]).
 
 %% makefile placeholder

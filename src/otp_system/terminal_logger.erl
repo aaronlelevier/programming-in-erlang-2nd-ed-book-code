@@ -44,8 +44,11 @@ handle_call(_Request, N) ->
 
 %% tests
 
+%% terminal_logger:test().
 test() ->
   logger:set_primary_config(level, info),
+
+  %% Docs: http://erlang.org/doc/man/alarm_handler.html
   gen_event:start_link({local, alarm_handler}),
   gen_event:add_handler(alarm_handler, ?MODULE, 0),
 
@@ -57,7 +60,7 @@ test() ->
   gen_event:swap_handler(
     alarm_handler,
     {alarm_handler, swap},
-    {my_alarm_handler, xyz}),
+    {my_alarm_handler, 0}),
 
   gen_event:delete_handler(alarm_handler, ?MODULE, []),
 

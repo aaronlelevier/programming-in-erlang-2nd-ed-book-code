@@ -10,7 +10,8 @@ ERL = erl -boot start_clean
 
 MODS = event_handler motor_controller logger_api my_alarm_handler \
 	terminal_logger file_logger product_handler prime_server \
-	lib_primes lib_lin area_server sellaprime_supervisor
+	lib_primes lib_lin area_server sellaprime_supervisor \
+	sellaprime_app
 
 all: compile
 	@erl \

@@ -15,7 +15,7 @@
 
 %% gen_server callback exports
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
-  terminate/2, code_change/3]).
+  terminate/2, code_change/3, compute_area/1]).
 
 %% interface
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
@@ -30,7 +30,7 @@ init(State) ->
   {ok, State}.
 
 handle_call({area, Thing}, _From, State) ->
-  {reply, compute_area(Thing), State}.
+  {reply, compute_area1(Thing), State}.
 handle_cast(_Msg, State) -> {noreply, State}.
 handle_info(_Info, State) -> {noreply, State}.
 
@@ -40,14 +40,19 @@ terminate(_Reason, _State) ->
 
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
 
+%% public
+compute_area(Thing) ->
+  ?DEBUG({compute_area, Thing}),
+  gen_server:call(?MODULE, {area, Thing}).
+
 %% private
-compute_area({square, N}) ->
+compute_area1({square, N}) ->
   ?DEBUG({square, N}),
   Ret = N * N,
   alarm_handler:set_alarm(computeWorked),
   Ret;
 % deliberate error to misspell "rectangle"
-compute_area({rectongle, H, W}) ->
+compute_area1({rectongle, H, W}) ->
   ?DEBUG({rectongle, H, W}),
   H * W.
 
@@ -60,6 +65,8 @@ test() ->
   % start server
   start_link(),
   % make requests
-  compute_area({square, 7}),
+  49 = compute_area({square, 7}),
+  20 = compute_area({rectongle, 4, 5}),
+  % will fail (on purpose)
   compute_area({rectangle, 4, 5}).
 

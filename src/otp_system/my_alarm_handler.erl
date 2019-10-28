@@ -30,7 +30,7 @@ start() ->
 
 %% gen_server behaviour
 init(Args) ->
-	?LOG_INFO("*** my_alarm_handler init", [Args]),
+	?LOG_INFO("*** my_alarm_handler init Args:~p", [Args]),
 	{ok, 0}.
 
 handle_event({set_alarm, tooHot}, N) ->

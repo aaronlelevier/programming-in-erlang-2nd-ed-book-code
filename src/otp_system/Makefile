@@ -11,20 +11,12 @@ ERL = erl -boot start_clean
 MODS = event_handler motor_controller logger_api my_alarm_handler \
 	terminal_logger file_logger product_handler prime_server \
 	lib_primes lib_lin area_server sellaprime_supervisor \
-	sellaprime_app
+	sellaprime_app prime_tester_server
 
 all: compile
 	@erl \
 	-pa '/Users/aaron/Documents/erlang/book-code/src/otp_system' \
-	-pa '/Users/aaron/Documents/erlang/book-code/src' \
-	-s event_handler init \
-	-s motor_controller init \
-	-s logger_api init \
-	-s my_alarm_handler init0
-
-events: compile
-	@erl \
-	-pa '/Users/aaron/Documents/erlang/book-code/src/otp_system'
+	-pa '/Users/aaron/Documents/erlang/book-code/src'
 
 compile: ${MODS:%=%.beam}
 

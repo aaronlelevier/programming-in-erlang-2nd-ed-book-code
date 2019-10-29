@@ -11,12 +11,13 @@ ERL = erl -boot start_clean
 MODS = event_handler motor_controller logger_api my_alarm_handler \
 	terminal_logger file_logger product_handler prime_server \
 	lib_primes lib_lin area_server sellaprime_supervisor \
-	sellaprime_app prime_tester_server
+	sellaprime_app prime_tester_server helpers
 
 all: compile
 	@erl \
 	-pa '/Users/aaron/Documents/erlang/book-code/src/otp_system' \
-	-pa '/Users/aaron/Documents/erlang/book-code/src'
+	-pa '/Users/aaron/Documents/erlang/book-code/src' \
+	-s sellaprime_app test
 
 compile: ${MODS:%=%.beam}
 

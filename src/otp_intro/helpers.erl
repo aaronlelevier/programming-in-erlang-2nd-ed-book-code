@@ -10,9 +10,7 @@
 -author("aaron lelevier").
 -export([log_the_error/3]).
 
-% placeholder `init` for Makefile
-init() -> ok.
-
 log_the_error(Name, Request, Why) ->
   io:format("Server ~p request ~p ~n"
   "caused exception ~p~n", [Name, Request, Why]).
+

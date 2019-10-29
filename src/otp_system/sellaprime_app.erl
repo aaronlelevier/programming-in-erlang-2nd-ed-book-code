@@ -12,6 +12,7 @@
 -export([start/2, stop/1, test/0]).
 -include_lib("../macros.hrl").
 
+
 %% interface
 start(_Type, StartArgs) ->
   sellaprime_supervisor:start_link(StartArgs).
@@ -19,6 +20,7 @@ stop(_State) -> ok.
 
 
 %% tests
+%% sellaprime_app:test().
 test() ->
   ?DEBUG("Initial Loaded..."),
   Loaded = application:loaded_applications(),
@@ -30,4 +32,14 @@ test() ->
   ?DEBUG({loaded, Loaded2}),
 
   ?DEBUG("Starting..."),
-  application:start(sellaprime).
+  application:start(sellaprime),
+
+  Ret = sellaprime_supervisor:add(area_server),
+
+  ?DEBUG("Supervisor adding child 1 ..."),
+  {ok, ChildPid} = sellaprime_supervisor:add(area_server),
+  ?DEBUG({child_pid1, ChildPid}),
+
+  ?DEBUG("Supervisor adding child 2 ..."),
+  {ok, ChildPid2} = sellaprime_supervisor:add(area_server),
+  ?DEBUG({child_pid2, ChildPid2}).

@@ -18,7 +18,9 @@
   terminate/2, code_change/3, compute_area/1]).
 
 %% interface
-start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
+start_link() ->
+  Name = helpers:rand_atom(?MODULE),
+  gen_server:start_link({local, Name}, ?MODULE, [], []).
 
 area(Thing) ->
   gen_server:call(?MODULE, {area, Thing}).
@@ -30,6 +32,7 @@ init(State) ->
   {ok, State}.
 
 handle_call({area, Thing}, _From, State) ->
+  ?DEBUG({handle_call, self()}),
   {reply, compute_area1(Thing), State}.
 handle_cast(_Msg, State) -> {noreply, State}.
 handle_info(_Info, State) -> {noreply, State}.

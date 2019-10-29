@@ -21,7 +21,8 @@ start_in_shell_for_testing() ->
   unlink(Pid).
 
 start_link(Args) ->
-  supervisor:start_link({local, ?MACHINE}, ?MODULE, Args).
+  supervisor:start_link({local, ?MODULE}, ?MODULE, Args).
+%%  supervisor:start_link({local, ?MACHINE}, ?MODULE, Args).
 
 init([]) ->
   %%  gen_event:swap_handler(
@@ -53,3 +54,12 @@ init([]) ->
         worker,
         [prime_tester_server]}
     ]}}.
+
+add(Mod) ->
+  supervisor:start_child(sellaprime_supervisor,
+    {helpers:rand_atom(tag),
+      {Mod, start_link, []},
+      permanent,
+      10000,
+      worker,
+      [Mod]}).

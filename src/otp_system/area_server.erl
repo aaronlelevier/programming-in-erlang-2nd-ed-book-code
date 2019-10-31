@@ -15,14 +15,16 @@
 
 %% gen_server callback exports
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
-  terminate/2, code_change/3, compute_area/1]).
+  terminate/2, code_change/3]).
 
 %% interface
 start_link() ->
   Name = helpers:rand_atom(?MODULE),
   gen_server:start_link({local, Name}, ?MODULE, [], []).
 
+%% public
 area(Thing) ->
+  % TODO: call `round_robin:next(?MODULE)` here
   gen_server:call(?MODULE, {area, Thing}).
 
 %% gen_server callbacks
@@ -42,11 +44,6 @@ terminate(_Reason, _State) ->
   ok.
 
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
-
-%% public
-compute_area(Thing) ->
-  ?DEBUG({compute_area, Thing}),
-  gen_server:call(?MODULE, {area, Thing}).
 
 %% private
 compute_area1({square, N}) ->
@@ -68,8 +65,8 @@ test() ->
   % start server
   start_link(),
   % make requests
-  49 = compute_area({square, 7}),
-  20 = compute_area({rectongle, 4, 5}),
+  49 = area({square, 7}),
+  20 = area({rectongle, 4, 5}),
   % will fail (on purpose)
-  compute_area({rectangle, 4, 5}).
+  area({rectangle, 4, 5}).
 

@@ -56,8 +56,10 @@ init([]) ->
     ]}}.
 
 add(Mod) ->
-  supervisor:start_child(sellaprime_supervisor,
-    {helpers:rand_atom(tag),
+  supervisor:start_child(
+    sellaprime_supervisor, {
+      % TODO: call `round_robin:add(Mod)` here
+      helpers:rand_atom(tag),
       {Mod, start_link, []},
       permanent,
       10000,

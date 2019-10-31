@@ -16,7 +16,8 @@ MODS = event_handler motor_controller logger_api my_alarm_handler \
 all: compile
 	@erl \
 	-pa '/Users/aaron/Documents/erlang/book-code/src/otp_system' \
-	-pa '/Users/aaron/Documents/erlang/book-code/src'
+	-pa '/Users/aaron/Documents/erlang/book-code/src' \
+	-s round_robin test
 
 compile: ${MODS:%=%.beam}
 

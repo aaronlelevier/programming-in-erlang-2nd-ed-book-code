@@ -22,6 +22,9 @@ stop(_State) -> ok.
 %% tests
 %% sellaprime_app:test().
 test() ->
+  % init ETS table for round_robin rotation
+  round_robin:init(),
+
   ?DEBUG("Initial Loaded..."),
   Loaded = application:loaded_applications(),
   ?DEBUG({loaded, Loaded}),
@@ -31,15 +34,18 @@ test() ->
   Loaded2 = application:loaded_applications(),
   ?DEBUG({loaded, Loaded2}),
 
-  ?DEBUG("Starting..."),
+  ?DEBUG("App starting..."),
   application:start(sellaprime),
 
-  Ret = sellaprime_supervisor:add(area_server),
-
   ?DEBUG("Supervisor adding child 1 ..."),
-  {ok, ChildPid} = sellaprime_supervisor:add(area_server),
-  ?DEBUG({child_pid1, ChildPid}),
+  ChildPid1 = sellaprime_supervisor:add(area_server),
+  ?DEBUG({child_pid1, ChildPid1}),
 
   ?DEBUG("Supervisor adding child 2 ..."),
   {ok, ChildPid2} = sellaprime_supervisor:add(area_server),
-  ?DEBUG({child_pid2, ChildPid2}).
+  ?DEBUG({child_pid2, ChildPid2}),
+
+  % make requests
+  16 = area_server:area({square, 4}),
+  25 = area_server:area({square, 5}),
+  49 = area_server:area({square, 7}).

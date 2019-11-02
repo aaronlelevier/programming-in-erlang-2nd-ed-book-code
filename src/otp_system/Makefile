@@ -17,7 +17,7 @@ all: compile
 	@erl \
 	-pa '/Users/aaron/Documents/erlang/book-code/src/otp_system' \
 	-pa '/Users/aaron/Documents/erlang/book-code/src' \
-	-s area_server test2
+	-s sellaprime_app test
 
 compile: ${MODS:%=%.beam}
 

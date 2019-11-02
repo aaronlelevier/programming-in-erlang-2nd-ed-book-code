@@ -11,6 +11,7 @@
 -compile(export_all).
 -export([]).
 -behavior(supervisor).
+-include_lib("../macros.hrl").
 
 start() ->
   spawn(fun() ->
@@ -22,45 +23,21 @@ start_in_shell_for_testing() ->
 
 start_link(Args) ->
   supervisor:start_link({local, ?MODULE}, ?MODULE, Args).
-%%  supervisor:start_link({local, ?MACHINE}, ?MODULE, Args).
 
 init([]) ->
-  %%  gen_event:swap_handler(
-  %%    alarm_handler,
-  %%    {alarm_handler, swap},
-  %%    {my_alarm_handler, xyz}),
   my_alarm_handler:start(),
 
-  % {RestartStrategy, MaxRestarts, Time}
-  % if MaxRestarts exceeded in given Time, Supervisor Process is killed
-  {ok, {{one_for_one, 3, 10},
-    [
-      {tag1,
-        {area_server, start_link, []}, % {Mod, Func, Args}
-        permanent, % Restart
-        10000, % Shutdown
-        worker, % Type
-        [area_server]}, % Modules - b/c the worker is a gen_server callback module
-      {tag2,
-        {prime_server, start_link, []},
-        permanent,
-        10000,
-        worker,
-        [prime_server]},
-      {tag3,
-        {prime_tester_server, start_link, []},
-        permanent,
-        10000,
-        worker,
-        [prime_tester_server]}
-    ]}}.
+  % {RestartStrategy, MaxRestarts, InGivenAmountOfTime}
+  {ok, {{one_for_one, 3, 10}, []}}.
 
+%% starts a child w/ a unique tag for a given `Mod`
+%% docs: http://erlang.org/doc/man/supervisor.html#start_child-2
+-spec add(Mod::atom()) -> atom().
 add(Mod) ->
   supervisor:start_child(
     sellaprime_supervisor, {
-      % TODO: call `round_robin:add(Mod)` here
-      helpers:rand_atom(tag),
-      {Mod, start_link, []},
+      round_robin:add(tag),
+      {Mod, start_link, [round_robin:add(area_server)]},
       permanent,
       10000,
       worker,

@@ -8,7 +8,7 @@
 %%%-------------------------------------------------------------------
 -module(round_robin).
 -author("aaron lelevier").
--export([init/0, add/1, next/1, test/0]).
+-export([init/0, add/1, next/1, test/0, test2/0]).
 -include_lib("../macros.hrl").
 
 %% creates a new `ets` table
@@ -117,3 +117,7 @@ test() ->
   foo1 = next(foo),
 
   ok.
+
+test2() ->
+  init(),
+  tag1 = add(tag).

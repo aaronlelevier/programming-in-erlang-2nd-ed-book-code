@@ -11,7 +11,7 @@
 -include_lib("../macros.hrl").
 
 %% interface exports
--export([start_link/0, area/1, test/0, test2/0]).
+-export([start_link/0, start_link/1, area/1, test/0, test2/0]).
 
 %% gen_server callback exports
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -21,11 +21,12 @@
 %% each gen_server started will get a unique name, that is the
 %% module_name+index, which comes from the round_robin ETS table
 start_link() ->
-  Name = round_robin:add(?MODULE),
+  gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
+
+start_link(Name) ->
   ?DEBUG(Name),
   gen_server:start_link({local, Name}, ?MODULE, [], []).
 
-%% public
 %% requests are sent round_robin
 area(Thing) ->
   Name = round_robin:next(?MODULE),
@@ -39,7 +40,7 @@ init(State) ->
   {ok, State}.
 
 handle_call({area, Thing}, _From, State) ->
-  ?DEBUG({handle_call, self()}),
+  ?DEBUG({handle_call, self(), area, Thing}),
   {reply, compute_area1(Thing), State}.
 handle_cast(_Msg, State) -> {noreply, State}.
 handle_info(_Info, State) -> {noreply, State}.
@@ -81,8 +82,8 @@ test2() ->
   % init round_robin ETS table
   round_robin:init(),
   % start 2 servers
-  start_link(),
-  start_link(),
+  start_link(round_robin:add(?MODULE)),
+  start_link(round_robin:add(?MODULE)),
   % make requests
   16 = area({square, 4}),
   25 = area({square, 5}),

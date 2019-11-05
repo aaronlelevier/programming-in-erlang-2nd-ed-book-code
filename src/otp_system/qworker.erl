@@ -35,6 +35,9 @@
   {ok, Pid :: pid()} | ignore | {error, Reason :: term()}).
 start_link() ->
   gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
+start_link(Name) ->
+  gen_server:start_link({local, Name}, ?MODULE, Name, []).
+
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -42,8 +45,9 @@ start_link() ->
 -spec(init(Args :: term()) ->
   {ok, State :: #state{}} | {ok, State :: #state{}, timeout() | hibernate} |
   {stop, Reason :: term()} | ignore).
-init([]) ->
+init(Name) ->
   InitState = #{status => free},
+  qmanager:reporting_for_duty(Name),
   {ok, InitState}.
 
 -spec(handle_call(Request :: term(), From :: {pid(), Tag :: term()},

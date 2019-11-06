@@ -18,7 +18,7 @@ all: compile
 	@erl \
 	-pa '/Users/aaron/Documents/erlang/book-code/src/otp_system' \
 	-pa '/Users/aaron/Documents/erlang/book-code/src' \
-	-s qmanager test
+	-s qmanager test2
 
 compile: ${MODS:%=%.beam}
 

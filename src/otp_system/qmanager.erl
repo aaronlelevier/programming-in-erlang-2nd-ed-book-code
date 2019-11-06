@@ -106,7 +106,9 @@ handle_call(free_workers, _from, State) ->
   Reply = free_workers0(State),
   {reply, Reply, State}.
 
-handle_cast(_Request, State) ->
+handle_cast({is_prime, N, Pid}, State) ->
+  IsPrime = lib_primes:is_prime(N),
+  Pid ! {?MODULE, {is_prime, N, IsPrime}},
   {noreply, State}.
 
 handle_info(_Info, State) ->
@@ -158,9 +160,33 @@ free_workers0(State) ->
 reporting_for_duty(Name) ->
   gen_server:call(?MODULE, {reporting_for_duty, Name}).
 
+
+%% is_prime using `cast`
+check_is_prime(N) ->
+  spawn(fun() -> is_prime_reply_loop(N) end).
+
+is_prime_reply_loop(N) ->
+  is_prime(N),
+  receive
+    {?MODULE, {is_prime, X, IsPrime}} ->
+      ?DEBUG({is_prime, X, IsPrime, self()})
+  after
+    2000 ->
+      timeout
+  end.
+
+-spec is_prime(N::integer()) -> {true | false, N::integer()}.
+is_prime(N) ->
+  % include my Pid b/c this is a cast, and we want a reply later
+  gen_server:cast(?MODULE, {is_prime, N, self()}).
+
 %%%===================================================================
 %%% Test functions
 %%%===================================================================
+test2() ->
+  start_link(),
+  [check_is_prime(X) || X <- lists:seq(1, 10)].
+
 test() ->
   % start ETS table for storing round robin data
   round_robin:init(),

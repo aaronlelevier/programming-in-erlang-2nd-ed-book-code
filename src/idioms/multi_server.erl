@@ -10,8 +10,12 @@
 -author("aaron lelevier").
 -compile(export_all).
 -export([]).
+-include_lib("../macros.hrl").
 
-start() -> spawn(fun() -> multi_server() end).
+
+start() ->
+  ?DEBUG("starting"),
+  spawn(fun() -> multi_server() end).
 
 multi_server() ->
   receive

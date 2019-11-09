@@ -8,12 +8,13 @@
 
 ERL = erl -boot start_clean
 
-MODS = multi_server
+MODS = multi_server adapter_db
 
 all: compile
 	@erl \
 	-pa '/Users/aaron/Documents/erlang/book-code/src/idioms' \
-	-pa '/Users/aaron/Documents/erlang/book-code/src'
+	-pa '/Users/aaron/Documents/erlang/book-code/src' \
+	-s adapter_db test
 
 compile: ${MODS:%=%.beam}
 

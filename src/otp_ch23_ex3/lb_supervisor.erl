@@ -11,16 +11,12 @@
 -behavior(supervisor).
 
 %% interface exports
--export([start/0, start_link/1, start_in_shell_for_testing/0]).
+-export([start_link/1, start_in_shell_for_testing/0]).
 
 %% supervisor exports
 -export([init/1]).
 
 %% interface
-start() ->
-  spawn(fun() ->
-    supervisor:start_link({local, ?MODULE}, ?MODULE, _Arg = []) end).
-
 start_link(Args) ->
   supervisor:start_link({local, ?MACHINE}, ?MODULE, Args).
 
@@ -30,4 +26,19 @@ start_in_shell_for_testing() ->
 
 %% supervisor callbacks
 init([]) ->
-  erlang:error(not_implemented).
+  event_handler:start(),
+
+  {ok, {{one_for_one, 3, 10},
+    [{tag1,
+      {lb_server, start_link, []},
+      permanent,
+      10000,
+      worker,
+      [lb_server]},
+      {tag2,
+        {worker_server, start_link, []},
+        permanent,
+        10000,
+        worker,
+        [worker_server]}
+    ]}}.

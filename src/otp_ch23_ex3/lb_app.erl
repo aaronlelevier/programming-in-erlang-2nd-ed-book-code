@@ -9,17 +9,30 @@
 -module(lb_app).
 -author("aaron lelevier").
 -behavior(application).
+-include_lib("../macros.hrl").
+
 -export([start/2, stop/1]).
+
+%% test exports
+-export([test/0]).
 
 -define(SUPERVISOR, lb_supervisor).
 
-start(_StartType, _StartArgs) ->
-  case ?SUPERVISOR:start_link() of
-    {ok, Pid} ->
-      {ok, Pid};
-    Error ->
-      Error
-  end.
+start(_Type, Args) ->
+  lb_supervisor:start_link(Args).
 
 stop(_State) ->
   ok.
+
+test() ->
+  ?DEBUG("Initial Loaded..."),
+  Loaded = application:loaded_applications(),
+  ?DEBUG({loaded, Loaded}),
+
+  ?DEBUG("Load lb..."),
+  application:load(lb),
+  Loaded2 = application:loaded_applications(),
+  ?DEBUG({loaded, Loaded2}),
+
+  ?DEBUG("App starting..."),
+  application:start(lb).

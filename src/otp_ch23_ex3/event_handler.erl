@@ -10,8 +10,14 @@
 -author("aaron lelevier").
 -behavior(gen_event).
 
-%% gen_event callbacks
+%% interface exports
+-export([start/0]).
+
+%% gen_event exports
 -export([init/1, handle_event/2, terminate/2, handle_call/2]).
+
+%% interface callbacks
+start() -> init([]).
 
 %% gen_event callbacks
 init(State) -> {ok, State}.

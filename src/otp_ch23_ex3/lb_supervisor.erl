@@ -4,9 +4,9 @@
 %%% @doc
 %%%
 %%% @end
-%%% Created : 25. Oct 2019 5:45 AM
+%%% Created : 14. Nov 2019 6:08 AM
 %%%-------------------------------------------------------------------
--module(supervisor_template).
+-module(lb_supervisor).
 -author("aaron lelevier").
 -behavior(supervisor).
 

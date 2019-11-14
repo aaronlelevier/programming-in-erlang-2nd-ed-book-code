@@ -4,19 +4,15 @@
 %%% @doc
 %%%
 %%% @end
-%%% Created : 25. Oct 2019 6:48 AM
+%%% Created : 14. Nov 2019 6:13 AM
 %%%-------------------------------------------------------------------
--module(application_template).
+-module(lb_app).
 -author("aaron lelevier").
 -behavior(application).
-
-%% application exports
 -export([start/2, stop/1]).
 
-%% TODO: must be defined
--define(SUPERVISOR, tbd).
+-define(SUPERVISOR, lb_supervisor).
 
-%% application callbacks
 start(_StartType, _StartArgs) ->
   case ?SUPERVISOR:start_link() of
     {ok, Pid} ->

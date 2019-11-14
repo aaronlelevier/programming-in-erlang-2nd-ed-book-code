@@ -4,16 +4,16 @@
 %%% @doc
 %%%
 %%% @end
-%%% Created : 24. Oct 2019 5:26 AM
+%%% Created : 14. Nov 2019 5:57 AM
 %%%-------------------------------------------------------------------
--module(gen_server_template).
+-module(worker_server).
 -author("aaron lelevier").
 -behavior(gen_server).
 
 %% interface exports
 -export([start_link/0]).
 
-%% gen_server exports
+%% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
   terminate/2, code_change/3]).
 

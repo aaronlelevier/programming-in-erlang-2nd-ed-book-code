@@ -26,11 +26,13 @@ start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 start_link(Name) ->
   ?DEBUG(Name),
-  gen_server:start_link({local, Name}, ?MODULE, [{some, state}], []).
+  gen_server:start_link({local, Name}, ?MODULE, Name, []).
 
 %% gen_server callbacks
-init(State) ->
-  ?DEBUG(State),
+init(Args) ->
+  ?DEBUG(Args),
+  lb_server:register(Args),
+  State = [],
   {ok, State}.
 handle_call(_Request, _From, State) -> {reply, 'Reply', State}.
 handle_cast(_Msg, State) -> {noreply, State}.

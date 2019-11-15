@@ -40,5 +40,22 @@ test() ->
   ?DEBUG("App starting..."),
   application:start(lb),
 
+  ?DEBUG("Initial worker count is 0"),
+  0 = lb_server:worker_count(),
+
+  ?DEBUG("lb_server status"),
+  #{workers := #{}} = lb_server:get_status(),
+
   ?DEBUG("lb_supervisor should start w/ an empty workers map"),
-  lb_supervisor:add().
+  lb_supervisor:add(),
+
+  ?DEBUG("Initial worker count is now 1"),
+  1 = lb_server:worker_count(),
+
+  ?DEBUG("lb_server status - now shows a worker present w/ 0 load"),
+  #{workers := #{worker_server1 := 0}} = lb_server:get_status(),
+
+  ?DEBUG("Add a 2nd worker"),
+  lb_supervisor:add(),
+  ?DEBUG({lb_server, worker_count, lb_server:worker_count()}),
+  ?DEBUG({lb_server, status, lb_server:get_status()}).

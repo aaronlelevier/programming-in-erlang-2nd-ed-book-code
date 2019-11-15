@@ -47,12 +47,13 @@ init([]) ->
 -spec add() -> atom().
 add() ->
   Mod = worker_server,
-  ?DEBUG({"Adding worker", Mod}),
+  WorkerName = round_robin:add(Mod),
+  ?DEBUG({"Adding worker", mod, Mod, worker_name, WorkerName}),
 
   supervisor:start_child(
     lb_supervisor, {
       round_robin:add(tag),
-      {Mod, start_link, [round_robin:add(Mod)]},
+      {Mod, start_link, [WorkerName]},
       permanent,
       10000,
       worker,

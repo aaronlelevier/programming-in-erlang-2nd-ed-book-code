@@ -53,7 +53,7 @@ handle_call({register, WorkerName}, _From, State) ->
   #{workers := Workers} = State,
   Workers2 = Workers#{WorkerName => 0},
   NewState = #{workers => Workers2},
-  {reply, {registered, WorkerName}, NewState}.
+  {reply, ok, NewState}.
 
 handle_cast(_Msg, State) -> {noreply, State}.
 handle_info(_Info, State) -> {noreply, State}.

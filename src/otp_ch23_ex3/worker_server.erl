@@ -24,14 +24,13 @@
 %% interface
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
-start_link(Name) ->
+start_link(Name, Callback) ->
   ?DEBUG(Name),
-  gen_server:start_link({local, Name}, ?MODULE, Name, []).
+  gen_server:start_link({local, Name}, ?MODULE, Callback, []).
 
 %% gen_server callbacks
-init(Args) ->
-  ?DEBUG(Args),
-  lb_server:register(Args),
+init(Callback) ->
+  ok = Callback(),
   State = [],
   {ok, State}.
 handle_call(_Request, _From, State) -> {reply, 'Reply', State}.

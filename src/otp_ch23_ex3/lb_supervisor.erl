@@ -43,6 +43,7 @@ init([]) ->
     ]}}.
 
 %% starts a child w/ a unique tag for a given `Mod`
+%% this child process is registered as a `worker` to the `lb_server`
 %% docs: http://erlang.org/doc/man/supervisor.html#start_child-2
 -spec add() -> atom().
 add() ->
@@ -50,10 +51,12 @@ add() ->
   WorkerName = round_robin:add(Mod),
   ?DEBUG({"Adding worker", mod, Mod, worker_name, WorkerName}),
 
+  Callback = fun() -> lb_server:register(WorkerName) end,
+
   supervisor:start_child(
     lb_supervisor, {
       round_robin:add(tag),
-      {Mod, start_link, [WorkerName]},
+      {Mod, start_link, [WorkerName, Callback]},
       permanent,
       10000,
       worker,

@@ -16,9 +16,13 @@
 %% supervisor exports
 -export([init/1]).
 
+%% debugging
+-include_lib("../macros.hrl").
+-compile(export_all).
+
 %% interface
 start_link(Args) ->
-  supervisor:start_link({local, ?MACHINE}, ?MODULE, Args).
+  supervisor:start_link({local, ?MODULE}, ?MODULE, Args).
 
 start_in_shell_for_testing() ->
   {ok, Pid} = supervisor:start_link({local, ?MODULE}, ?MODULE, _arg = []),
@@ -29,16 +33,27 @@ init([]) ->
   event_handler:start(),
 
   {ok, {{one_for_one, 3, 10},
-    [{tag1,
+    % special tag name for `lb_server`
+    [{lb_server_tag1,
       {lb_server, start_link, []},
       permanent,
       10000,
       worker,
-      [lb_server]},
-      {tag2,
-        {worker_server, start_link, []},
-        permanent,
-        10000,
-        worker,
-        [worker_server]}
+      [lb_server]}
     ]}}.
+
+%% starts a child w/ a unique tag for a given `Mod`
+%% docs: http://erlang.org/doc/man/supervisor.html#start_child-2
+-spec add() -> atom().
+add() ->
+  Mod = worker_server,
+  ?DEBUG({"Adding worker", Mod}),
+
+  supervisor:start_child(
+    lb_supervisor, {
+      round_robin:add(tag),
+      {Mod, start_link, [round_robin:add(Mod)]},
+      permanent,
+      10000,
+      worker,
+      [Mod]}).

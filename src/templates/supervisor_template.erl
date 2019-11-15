@@ -22,7 +22,7 @@ start() ->
     supervisor:start_link({local, ?MODULE}, ?MODULE, _Arg = []) end).
 
 start_link(Args) ->
-  supervisor:start_link({local, ?MACHINE}, ?MODULE, Args).
+  supervisor:start_link({local, ?MODULE}, ?MODULE, Args).
 
 start_in_shell_for_testing() ->
   {ok, Pid} = supervisor:start_link({local, ?MODULE}, ?MODULE, _arg = []),

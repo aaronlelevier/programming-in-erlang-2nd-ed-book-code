@@ -25,6 +25,9 @@ stop(_State) ->
   ok.
 
 test() ->
+  % init ETS table for round_robin rotation
+  round_robin:init(),
+
   ?DEBUG("Initial Loaded..."),
   Loaded = application:loaded_applications(),
   ?DEBUG({loaded, Loaded}),
@@ -35,4 +38,7 @@ test() ->
   ?DEBUG({loaded, Loaded2}),
 
   ?DEBUG("App starting..."),
-  application:start(lb).
+  application:start(lb),
+
+  ?DEBUG("lb_supervisor should start w/ an empty workers map"),
+  lb_supervisor:add().

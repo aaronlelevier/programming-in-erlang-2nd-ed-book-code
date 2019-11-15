@@ -8,7 +8,8 @@
 
 ERL = erl -boot start_clean
 
-MODS = event_handler lb_app lb_supervisor lb_server worker_server
+MODS = event_handler lb_app lb_supervisor lb_server worker_server \
+	round_robin
 
 all: compile
 	@erl \

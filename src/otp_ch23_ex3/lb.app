@@ -10,10 +10,10 @@
       event_handler
     ]},
     {registered, [
-      lb_supervisor,
       lb_server,
-      worker_server
-    ]},
+      worker_server,
+      lb_supervisor
+      ]},
     {applications, [kernel, stdlib]},
     {mod, {lb_app, []}},
     {start_phases, []}
